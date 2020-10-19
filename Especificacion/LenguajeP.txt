@@ -1,0 +1,29 @@
+Tipos de datos:
+    Básicos:
+        NUM: tipo entero (ej: -1, 0, 1...)
+            Operaciones:
+                - Multiplicacion (*) (Más prioritario)
+                - Suma (+) (Misma prioridad que -)
+                - Resta (-) (Misma prioridad que +)
+        LOG: tipo boleano (T y F)
+            Operaciones:
+                - Ninguna
+
+    Compuestos:
+        SEQ(NUM): secuencia de enteros )[3, 4, 2] // Admite secuencias vacias
+        SEQ(LOG): secuencia de boleanos [T] // Admite secuencias vacias
+
+        Operaciones:
+            - vacia: comprueba si una secuencia es vacía
+            - ultima_posicion: devuelve  la ultima posición de una secuencia no vacía
+        Observaciones:
+            - El acceso a un elemento de la secuencia se realiza mediante corchetes. Ej: s[2]. Cualquier expresión numérica es válida como índice
+            - El acceso a una posición inexistente provoca un error
+            - El primer elemento de una secuencia se encuetnra en la posición 0
+
+
+Observaciones:
+    - El tipo de una variable es invariable una vez declarada
+    - La declaración de una variable no asigna valor a esta
+    - Las expresiones de distintos tipos no se pueden combinar. Ej: 1+F, []+[1, 2]
+    
