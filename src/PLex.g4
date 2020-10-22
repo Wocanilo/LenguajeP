@@ -5,7 +5,7 @@ TABULADOR: '\t' -> skip;
 FIN_LINEA: '\r'?'\n' -> skip;
 
 fragment DIGITO: [0-9];
-fragment LETRA: [a-z]; // Se ha decidido que el lenguaje P solo utiliza variables en minuscula
+fragment LETRA: [a-z]|('-'|'_');
 
 PROGRAMA: 'PROGRAMA';
 VARIABLES: 'VARIABLES';
@@ -20,13 +20,13 @@ SEQ: 'SEQ';
 // Simbolos
 TRUE: 'T';
 FALSE: 'F';
-SUMA: '+';
-RESTA: '-';
+MAS: '+';
+MENOS: '-';
 POR: '*';
 INICIO_PARENTESIS: '(';
 FIN_PARENTESIS: ')';
-INICIO_CORCHETES: '[';
-FIN_CORCHETES: ']';
+INICIO_CORCHETE: '[';
+FIN_CORCHETE: ']';
 INICIO_LLAVE: '{';
 FIN_LLAVE: '}';
 IGUAL: '=';
@@ -43,6 +43,7 @@ MAYOR_IGUAL_QUE: '>=';
 MENOR_IGUAL_QUE: '<=';
 CONJUNCION: '&&';
 DISYUNCION: '||';
+NEGACION: '!';
 CIERTO: 'cierto';
 FALSO: 'falso';
 
@@ -57,16 +58,16 @@ FMIENTRAS: 'fmientras';
 MIENTRAS: 'mientras';
 HACER: 'hacer';
 RUPTURA: 'ruptura';
-VACIA: 'vacia';
-ULTIMA_POSICION: 'ultima_posicion';
+AVANCE: 'avance';
 PROCEDIMIENTO: 'PROCEDIMIENTO';
 FPROCEDIMIENTO: 'FPROCEDIMIENTO';
 PARATODO: 'PARATODO';
 EXISTE: 'EXISTE';
 
 // Esto va al final o se lia con las palabras clave
-NUMERO: ('-')?DIGITO+;
+ENTERO: ('-')?DIGITO+;
 IDENTIFICADOR: LETRA(LETRA|DIGITO)*;
 
 // Saltar comentarios
 COMENTARIOS_LINEA: '//' .*? -> skip;
+COMENTARIOS_BLOQUE: '/*' .*? '*/' -> skip;

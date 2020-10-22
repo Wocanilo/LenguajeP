@@ -8,6 +8,8 @@ Tipos de datos:
         LOG: tipo boleano (T y F)
             Operaciones:
                 - Ninguna
+            Observaciones:
+                - Consideramos que las condiciones tan solo pueden usarse en las instrucciones de control
 
     Compuestos:
         SEQ(NUM): secuencia de enteros )[3, 4, 2] // Admite secuencias vacias
@@ -21,9 +23,31 @@ Tipos de datos:
             - El acceso a una posición inexistente provoca un error
             - El primer elemento de una secuencia se encuetnra en la posición 0
 
-
 Observaciones:
     - El tipo de una variable es invariable una vez declarada
     - La declaración de una variable no asigna valor a esta
     - Las expresiones de distintos tipos no se pueden combinar. Ej: 1+F, []+[1, 2]
+    - Se admiten los comentarios en línea y en bloque
+
+Seccion instrucciones:
+    - Asignacion:
+        -Puede ser tanto simple o múltiple
+            x = 1;
+            x,y = 2,5;
+        - La asignaciones multiples se realizan de forma paralela
+    - Condicional
+        Bloque de instrucciones cuya ejecucion depende del valor de verdad de una condición
+            - si-fsi
+            - si-sino-fsi
+        Las condiciones tan solo se pueden realizar entre expresiones del mismo tipo.
+    - Iteración
+        - mientras-hacer-fmientras
+        Se le puede asociar una funcion de avance, esta funcion comprueba que la iteracion avanza hasta su terminacion
+    - Ruptura de control
+        La instruccion ruptura permite llevar al programa fuera del bloque en el que se encuentra la insturccion
+    - Llamada a procedimiento
+    - Devolución de resultados
+    - Mostrar valores en consola
+        El procedimiento mostrar permite mostrar por consola los valores de una lista de variables
+    - Aserto
     
