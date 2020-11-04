@@ -15,7 +15,8 @@ INSTRUCCIONES: 'INSTRUCCIONES';
 // Tipos
 NUM: 'NUM';
 LOG: 'LOG';
-SEQ: 'SEQ';
+SEQ_NUM: 'SEQ(NUM)';
+SEQ_LOG: 'SEQ(LOG)';
 
 // Simbolos
 TRUE: 'T';

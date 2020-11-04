@@ -15,7 +15,7 @@ Tipos de datos:
         SEQ(NUM): secuencia de enteros )[3, 4, 2] // Admite secuencias vacias
         SEQ(LOG): secuencia de boleanos [T] // Admite secuencias vacias
 
-        Operaciones:
+        Predicados (Cuidado al implementar...):
             - vacia: comprueba si una secuencia es vacía
             - ultima_posicion: devuelve  la ultima posición de una secuencia no vacía
         Observaciones:
@@ -50,4 +50,19 @@ Seccion instrucciones:
     - Mostrar valores en consola
         El procedimiento mostrar permite mostrar por consola los valores de una lista de variables
     - Aserto
-    
+
+Semántica del lenguaje P:
+- Cada variable declarada tiene un tipo invariable (Objetivo 1, Decision 1 y 2)
+- Es un lenguaje fuertemente tipado, las expresiones de distintos tipos no pueden mezclarse.
+    - (Está implícito pero cualquier asignación que resuelva a un tipo indefinido es incorrecta)
+    - Aplica también a las condiciones, dado que están formadas por expresiones
+    - Es necesario resolver el tipo de las funciones para poder resolver correctamente el tipo de las expresiones (Hay que tener en cuenta que los procedimientos devuelven indefinido siempre)
+    - En las listas tan solo puede haber un tipo
+- En las llamadas a los proc/func debe respetarse el tipo de los argumentos
+- Las funciones y procedimientos deben respetar el tipo devuelto
+- Las variables de entrada de una función son de solo lectura
+- En una asignación multiple debe existir el mismo número de elementos en cada lado de la asignación
+    - Caso límite: llamada a una función que devuelve múltiples valores
+- No es posible llamar a una función o procredimiento que no existe
+- Dado que el lenguaje predefine dos funciones para las secuencias, vacia y ultima_posicion, debemos comprobar que no se trata de sobreescribir dichas funciones
+

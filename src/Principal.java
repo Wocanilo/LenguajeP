@@ -14,6 +14,7 @@ public class Principal {
         CommonTokenStream tokens = new CommonTokenStream(analex);
         PSint anasint = new PSint(tokens);
         ParseTree tree = anasint.programa();
+
         JFrame frame = new JFrame("Árbol de Análisis");
         JPanel panel = new JPanel();
         TreeViewer viewr = new TreeViewer(Arrays.asList(
@@ -24,5 +25,9 @@ public class Principal {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(500,400);
         frame.setVisible(true);
+        // Analizador semantico al ataque
+        PSem psem = new PSem();
+        psem.visit(tree);
+
     }
 }

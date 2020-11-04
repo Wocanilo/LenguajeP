@@ -4,19 +4,18 @@ options{
     tokenVocab=PLex;
 }
 
-programa: PROGRAMA variables subprogramas instrucciones EOF; //subprograma instrucciones;
+programa: PROGRAMA variables subprogramas instrucciones EOF;
 
-tipo_basico: NUM
+tipo: NUM
     | LOG
+    | SEQ_NUM
+    | SEQ_LOG
     ;
 
-// Las secuencias pueden ser de cualquiera de los tipos basicos
-tipo_secuencia: SEQ INICIO_PARENTESIS tipo_basico FIN_PARENTESIS;
-
 // La seccion de declaracion de variables puede estar formada por 0 o varias declaraciones
-variables: VARIABLES decl_var*;
+variables: VARIABLES (decl_var PyC)*;
 // Cada declaracion de variables está formada por al menos un identificador y un tipo basico o compuesto
-decl_var: IDENTIFICADOR (COMA IDENTIFICADOR)* PyP (tipo_basico|tipo_secuencia) PyC;
+decl_var: IDENTIFICADOR (COMA IDENTIFICADOR)* PyP tipo;
 
 // Llamada a funcion/procedimiento.
 llamada_func_proc: IDENTIFICADOR INICIO_PARENTESIS expr (COMA expr)* FIN_PARENTESIS;
@@ -88,13 +87,13 @@ aserto: INICIO_LLAVE (PARATODO|EXISTE) INICIO_PARENTESIS variable_cuantificada F
 instrucciones: INSTRUCCIONES instruccion*; // La seccion de INSTRUCCIONES es una secuencia de 0 o mas instrucciones
 
 // Seccion de subprogramas. Se ha separado la definicion de parametros para facilitar su parseo
-parametro: (tipo_basico|SEQ) IDENTIFICADOR;
+parametro: tipo IDENTIFICADOR;
 parametros: parametro (COMA parametro)*;
 devolver: DEV expr (COMA expr)*;
 instrucciones_funcion: INSTRUCCIONES (instruccion|devolver)*; // Puede que sea buena idea impedir la creacion de funciones sin instrucciones..
 
-def_func: FUNCION IDENTIFICADOR INICIO_PARENTESIS parametros FIN_PARENTESIS DEV INICIO_PARENTESIS parametros FIN_PARENTESIS variables instrucciones_funcion FFUNCION;
-def_proc: PROCEDIMIENTO IDENTIFICADOR INICIO_PARENTESIS parametros FIN_PARENTESIS variables instrucciones FPROCEDIMIENTO;
+def_func: FUNCION IDENTIFICADOR INICIO_PARENTESIS parametros? FIN_PARENTESIS DEV INICIO_PARENTESIS parametros FIN_PARENTESIS variables instrucciones_funcion FFUNCION;
+def_proc: PROCEDIMIENTO IDENTIFICADOR INICIO_PARENTESIS parametros? FIN_PARENTESIS variables instrucciones FPROCEDIMIENTO;
 
 // La seccion de subprogramas esta formado por 0 o varias declaraciones de funciones y/o procedimientos
 subprogramas: SUBPROGRAMAS (def_func | def_proc)*;
