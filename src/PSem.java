@@ -1,12 +1,13 @@
 import org.antlr.v4.runtime.tree.TerminalNode;
+import util.Variable;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class PSem extends PSintBaseVisitor<Object>{
     // Almacena el tipo de cada variable
-    private HashMap<String, HashMap<String, Integer>> tipoVariables = new HashMap<>();
-
-    //TODO: Crear variable local que se establezca a uno cuando se produzca un error. Si se produce un error el programa no llega a interpretarse, ya que se considera incorrecto
+    private final HashMap<String, HashMap<String, Integer>> tipoVariables = new HashMap<>();
 
     // Funcion auxiliar que traduce los ID a String para los mensajes de error
     private String idToString(Integer id){
@@ -24,47 +25,29 @@ public class PSem extends PSintBaseVisitor<Object>{
         }
     }
 
-    //(funcion obtenerScopeVariable(declr_var)
-    //    // PROGRAMA/FUNCION/PROC -> VARIABLES -> decl_vars
-    //    Si el padre del padre de declr_var es PROGRAMA entonces GLOBAL
-    //    sino entonces LOCAL
-    //)
-    private String obtenerScopeVariable(PSint.Decl_varContext ctx){
-        return ctx.getParent().getParent().getStart().getType() == PSint.PROGRAMA ? "GLOBALES" : "LOCAL";
-    }
-
-    // Comprueba si la variable existe en el scope dado.
-    // Si existe comprueba si se está redeclarando con distinto tipo
-    // Si no existe se añade
-    private void declararVariable(String identificador, Integer tipo, String origenVariable){
-        if(!tipoVariables.containsKey(origenVariable)){
-            // No existe el scope de la variable
+    // Funcion auxiliar que declara una variable en el contexto pasado
+    private void declaraVariable(Variable var, String scope){
+        String identificador = var.getIdentificador();
+        Integer tipo = var.getTipo();
+        // Comprobamos que exista el scope
+        if(!this.tipoVariables.containsKey(scope)){
             HashMap<String, Integer> variables = new HashMap<>();
             variables.put(identificador, tipo);
-            // Almacenamos el scope en tipoVariable
-            tipoVariables.put(origenVariable, variables);
+            // Almacenamos el scope
+            this.tipoVariables.put(scope, variables);
         }else{
-            // El scope existe, comprobamos si se ha redeclarado la variable
-            HashMap<String, Integer> variables = tipoVariables.get(origenVariable);
+            HashMap<String, Integer> variables = this.tipoVariables.get(scope);
+            // Comprobamos que no se haya redeclarado
             if(!variables.containsKey(identificador)){
-                // Almacenamos el tipo de la variable
                 variables.put(identificador, tipo);
-                // Actualizamos tipoVariables
-                tipoVariables.put(origenVariable, variables);
-            }
-            else{
-                // Debemos comprobar si la variable ha sido redeclarada con tipo distinto
-                Integer tipoAlmancenado = variables.get(identificador);
+                this.tipoVariables.put(scope, variables);
+            }else{
+                // Diferenciamos entre una redeclaración del mismo tipo y una con distinto tipo
+                Integer tipoAlmacenado = variables.get(identificador);
 
-                if(tipo == tipoAlmancenado) {
-                    // Avisamos de que la variable ha sido redeclarada.
-                    System.out.println(String.format("AVISO: Redeclaración de la variable %s", identificador));
-                }else{
-                    // La variable ha sido declarada con un tipo diferente -> Violación del tipado
-                    // Seria conveniente almacenar cada tipo para ser mas user friendly
-                    System.out.println(String.format("ERROR: Redeclaración de la variable %s. Tipo Almacenado: %s, Tipo Declaración: %s, Scope: %s",
-                            identificador, this.idToString(tipoAlmancenado), this.idToString(tipo), origenVariable));
-                }
+                if(tipo.intValue() == tipoAlmacenado.intValue()) System.out.println(String.format("WARNING: Variable '%s' redeclarada como %s. Previamente declarada como: %s", identificador, this.idToString(tipo), this.idToString(tipoAlmacenado)));
+                if(tipo.intValue() != tipoAlmacenado.intValue()) System.out.println(String.format("ERROR: Variable '%s' redeclarada como %s. Previamente declarada como: %s", identificador, this.idToString(tipo), this.idToString(tipoAlmacenado)));
+
             }
         }
     }
@@ -82,43 +65,123 @@ public class PSem extends PSintBaseVisitor<Object>{
         return ctx.getStart().getType();
     }
 
-    // decl_var: ident=IDENTIFICADOR (COMA ident=IDENTIFICADOR)* PyP t=tipo {almacenar cada ident con tipo t en tipoVariables[obtenerScopeVariable(árbol declr_var)]};
+    // (parámetro de salida d)
+    // decl_var: ident=IDENTIFICADOR (COMA ident=IDENTIFICADOR)* PyP t=tipo {almacenar cada ident con tipo t en d};
     @Override
     public Object visitDecl_var(PSint.Decl_varContext ctx){
-        Integer tipo = (Integer)visit(ctx.tipo()); // El último token de una declaración es el tipo de las variables
-
-        // Determina si la variable es local o global en función de su origen PROGRAMA/FUNCION/PROC -> VARIABLES -> decl_vars
-        String origenVariable = this.obtenerScopeVariable(ctx);
-
-        for(TerminalNode identificador: ctx.getTokens(PSint.IDENTIFICADOR)){
-            String valorIdentificador = identificador.getText();
-            this.declararVariable(valorIdentificador, tipo, origenVariable);
-        }
-        return null; // No devolvemos nada ni queremos que se visiten sus hijos.
-    }
-
-    // def_func: FUNCION IDENTIFICADOR INICIO_PARENTESIS parametros? FIN_PARENTESIS DEV INICIO_PARENTESIS parametros FIN_PARENTESIS variables instrucciones_funcion FFUNCION; {borrar tipoVariables[LOCAL]}
-    @Override
-    public Object visitDef_func(PSint.Def_funcContext ctx) {
-        // Debemos limpiar el scope de variables locales, ya que la redeclaración de una variable local en otra función es legal
-        tipoVariables.remove("LOCAL");
-        return super.visitDef_func(ctx); // Debemos seguir llamando a la implementación, ya que queremos que se visiten sus hijos
-    }
-
-    // def_proc: PROCEDIMIENTO IDENTIFICADOR INICIO_PARENTESIS parametros? FIN_PARENTESIS variables instrucciones FPROCEDIMIENTO; {borrar tipoVariables[LOCAL]}
-    @Override
-    public Object visitDef_proc(PSint.Def_procContext ctx) {
-        // Debemos limpiar el scope de variables locales, ya que la redeclaración de una variable local en otro procedimiento es legal
-        tipoVariables.remove("LOCAL");
-        return super.visitDef_proc(ctx); // Debemos seguir llamando a la implementación, ya que queremos que se visiten sus hijos
-    }
-
-    // parametro: t=tipo ident=IDENTIFICADOR {almacenar ident con tipo t en tipoVariables[LOCAL]};
-    @Override
-    public Object visitParametro(PSint.ParametroContext ctx){
+        List<Variable> variables = new ArrayList<>();
         Integer tipo = (Integer)visit(ctx.tipo());
 
-        this.declararVariable(ctx.getStop().getText(), tipo, "LOCAL");
-        return null; // No devolvemos nada ni queremos que se visiten sus hijos.
+        for(TerminalNode variable: ctx.getTokens(PSint.IDENTIFICADOR)){
+           variables.add(new Variable(variable.getText(), tipo));
+        }
+
+        return variables;
+    }
+
+    // (parámetro de salida vs)
+    // variables: VARIABLES d=(decl_var PyC)* {almacenar cada d en vs} ;
+    @Override
+    public Object visitVariables(PSint.VariablesContext ctx){
+        List<List<Variable>> variables = new ArrayList<>();
+
+        for(PSint.Decl_varContext decl_var: ctx.decl_var()){
+            variables.add((List<Variable>) visit(decl_var));
+        }
+
+        return variables;
+    }
+
+    // programa: PROGRAMA vs=variables subprogramas instrucciones EOF {almacenar vs en tipoVariable[GLOBAL]};
+    @Override
+    public Object visitPrograma(PSint.ProgramaContext ctx){
+        List<List<Variable>> variables = (List<List<Variable>>) visit(ctx.variables());
+
+        // Almacenamos las variables en el scope global
+        for(List<Variable> decl_var: variables){
+            for(Variable var: decl_var){
+                // Declaramos la variable
+                this.declaraVariable(var, "GLOBAL");
+            }
+        }
+
+        return super.visitPrograma(ctx); // Debemos visitar a los hijos por ahora
+    }
+
+    // (parámetro de salida p)
+    // parametro: t=tipo ident=IDENTIFICADOR {almacenar ident con tipo t en p};
+    @Override
+    public Object visitParametro(PSint.ParametroContext ctx){
+        String identificador = ctx.getStop().getText();
+        Integer tipo = (Integer)visit(ctx.tipo());
+
+        return new Variable(identificador, tipo);
+    }
+
+    // (parámetro de salida ps)
+    // parametros: p=parametro (COMA p=parametro)* {almacenar cada p en ps};
+    @Override
+    public Object visitParametros(PSint.ParametrosContext ctx){
+        List<Variable> parametros = new ArrayList<>();
+
+
+        for(PSint.ParametroContext parametro: ctx.parametro()){
+            // Visitamos cada elemento parámetro para formar la lista
+            parametros.add( (Variable)visit(parametro) );
+        }
+
+
+        return parametros;
+    }
+
+    // def_func: FUNCION nombreFunc=IDENTIFICADOR INICIO_PARENTESIS ps=parametros? FIN_PARENTESIS DEV INICIO_PARENTESIS ps=parametros FIN_PARENTESIS vs=variables instrucciones_funcion FFUNCION;
+    // {almacenar cada ps en tipoVariable[nombreFunc]} {almacenar vs en tipoVariable[nombreFunc]}
+    @Override
+    public Object visitDef_func(PSint.Def_funcContext ctx){
+        String nombreFuncion = ctx.getToken(PSint.IDENTIFICADOR, 0).getText(); // El nombre es el unico identificador que hay en una declaracion de funcion
+        List<Variable> parametrosEntrada;
+        List<Variable> parametrosSalida;
+
+        // Debemos comprobar si existen los parámetros
+        if (ctx.parametros().size() == 2){
+            // Hay parametros de entrada y salida
+            parametrosEntrada = (List<Variable>)visit(ctx.parametros(0)); // El primer conjunto de parámetros de una función son los de entrada
+            parametrosSalida = (List<Variable>)visit(ctx.parametros(1)); // El segundo conjunto de parámetros de una función son los de salida
+        }else{
+            // Solo hay de salida
+            parametrosEntrada = new ArrayList<>();
+            parametrosSalida = (List<Variable>)visit(ctx.parametros(0)); // El segundo conjunto de parámetros de una función son los de salida
+        }
+
+        List<List<Variable>> variablesSeccion = (List<List<Variable>>)visit(ctx.variables()); // Debemos procesar la sección de variables de la función
+
+        // Declaramos todos los parámetros
+        for(Variable var: parametrosEntrada) this.declaraVariable(var, nombreFuncion);
+        for(Variable var: parametrosSalida) this.declaraVariable(var, nombreFuncion);
+
+        // Declaramos las variables de la seccion de variables
+        for(List<Variable> decl_var: variablesSeccion){
+            for(Variable var: decl_var){
+                // Declaramos la variable
+                this.declaraVariable(var, nombreFuncion);
+            }
+        }
+
+        return super.visitDef_func(ctx); // Queremos que se sigan visitando los hijos
+    }
+
+    // def_proc: PROCEDIMIENTO nombreProc=IDENTIFICADOR INICIO_PARENTESIS ps=parametros? FIN_PARENTESIS vs=variables instrucciones FPROCEDIMIENTO;
+    // {almacenar cada ps en tipoVariable[nombreProc]} {almacenar vs en tipoVariable[nombreProc]}
+    @Override
+    public Object visitDef_proc(PSint.Def_procContext ctx){
+        String nombreProc = ctx.getToken(PSint.IDENTIFICADOR, 0).getText(); // El nombre es el unico identificador que hay en una declaracion de procedimiento
+
+        // Comprobamos que existan parámetros
+        if(ctx.parametros() != null) {
+            List<Variable> parametrosEntrada = (List<Variable>)visit(ctx.parametros()); // Los procedimientos tan solo tienen parámetros de entrada
+            for(Variable var: parametrosEntrada) this.declaraVariable(var, nombreProc);
+        }
+
+        return super.visitDef_proc(ctx); // Queremos que se sigan visitando los hijos
     }
 }

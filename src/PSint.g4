@@ -84,13 +84,13 @@ instruccion: (asignacion|condicional|iteracion|aserto);
 variable_cuantificada: IDENTIFICADOR PyP INICIO_CORCHETE elementos_secuencia FIN_CORCHETE COMA condicion_completa;
 aserto: INICIO_LLAVE (PARATODO|EXISTE) INICIO_PARENTESIS variable_cuantificada FIN_PARENTESIS FIN_LLAVE;
 
-instrucciones: INSTRUCCIONES instruccion*; // La seccion de INSTRUCCIONES es una secuencia de 0 o mas instrucciones
+instrucciones: INSTRUCCIONES instruccion+; // Los programas con 0 instrucciones no son correctos
 
 // Seccion de subprogramas. Se ha separado la definicion de parametros para facilitar su parseo
 parametro: tipo IDENTIFICADOR;
 parametros: parametro (COMA parametro)*;
 devolver: DEV expr (COMA expr)*;
-instrucciones_funcion: INSTRUCCIONES (instruccion|devolver)*; // Puede que sea buena idea impedir la creacion de funciones sin instrucciones..
+instrucciones_funcion: INSTRUCCIONES (instruccion|devolver)+; // Las funciones sin instrucciones no son correctas
 
 def_func: FUNCION IDENTIFICADOR INICIO_PARENTESIS parametros? FIN_PARENTESIS DEV INICIO_PARENTESIS parametros FIN_PARENTESIS variables instrucciones_funcion FFUNCION;
 def_proc: PROCEDIMIENTO IDENTIFICADOR INICIO_PARENTESIS parametros? FIN_PARENTESIS variables instrucciones FPROCEDIMIENTO;

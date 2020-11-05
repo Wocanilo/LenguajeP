@@ -1,26 +1,21 @@
 # Especificación analizador semántico
 
 ## OBJETIVO 1
-Calcular el tipo de una expresión.
+Detectar variables redeclaradas.
 
-Las expresiones pueden ser de tipo entera, booleana, secuencia entera, secuencia booleana o indefinida. \
-Las expresiones indefinidas son erróneas.
+Una vez declaradas, las variables son de tipo inmutable
             
-### Razón
-Conocer el tipo de las expresiones es el primer bloque para evaluar si un programa es correcto.
-
 ### Ejemplo
 ```
-x: entero
-y: booleano
-
-x + y + 5 (tipo indefinido)
+x,y:NUM
+x:LOG
+(Error)
 ```
 ### Decisiones de diseño
 
 #### Decisión 1
-Para decidir si una expresión está bien tipada, es necesario conocer el tipo de las variables implicadas.
-Por ello, se necesita almacenar está información al procesar la asignación de variables.
+Para detectar redeclaraciones es necesario almacenar el identificador y el tipo de cada variable.
+Por ello, se necesita almacenar esta información al declarar las variables.
 
 Para este fin se creará un almacén de variables al que llamaremos **tipoVariables**
 
@@ -42,25 +37,23 @@ tipo: NUM {t=entero}
     | SEQ_LOG {t=secuencia_booleana}
     ;
 
-variables: VARIABLES (decl_var PyC)*;
+variables: VARIABLES d=(decl_var PyC)* {almacenar cada d en tipoVariables} ;
 
-decl_var: ident=IDENTIFICADOR (COMA ident=IDENTIFICADOR)* PyP t=tipo {almacenar cada ident con tipo t en tipoVariables};
+(parámetro de salida d)
+decl_var: ident=IDENTIFICADOR (COMA ident=IDENTIFICADOR)* PyP t=tipo {almacenar cada ident con tipo t en d};
 ```
 #### Decisión 2
 Las variables pueden tener dos scopes o alcances: **global o local**.
-Debemos conocer el scope de las variables a la hora de resolver las expresiones para conocer si una variable existe en el contexto en el que ha sido utilizada
 
 Las variables globales son aquellas declaradas en la sección **VARIABLES** del programa principal.
 
 Las variables locales son aquellas declaradas **dentro de una función o procedimiento**, ya sea **como argumento de entrada
 o de salida o dentro de la sección variables**.
 
-Por tanto, tendremos un almacen de variables global y un almacen de variables locales que se borrará al analizar cada función/procedimiento
-(ya que **no existe colisión entre las variables de dos funciones/procedimientos distintos**)
-
+Por tanto, tendremos un almacen de variables global y un almacen de variables local por cada una de las funciones o procedimientos.
 ##### Gramática atribuida
 ```
-programa: PROGRAMA variables subprogramas instrucciones EOF;
+programa: PROGRAMA vs=variables subprogramas instrucciones EOF {almacenar vs en tipoVariable[GLOBAL]};
 
 (parámetro de salida t)
 tipo: NUM {t=entero}
@@ -69,24 +62,32 @@ tipo: NUM {t=entero}
     | SEQ_LOG {t=secuencia_booleana}
     ;
 
-variables: VARIABLES (decl_var PyC)*;
+(parámetro de salida vs)
+variables: VARIABLES d=(decl_var PyC)* {almacenar cada d en vs} ;
 
-decl_var: ident=IDENTIFICADOR (COMA ident=IDENTIFICADOR)* PyP t=tipo {almacenar cada ident con tipo t en tipoVariables[obtenerScopeVariable(árbol declr_var)]};
+(parámetro de salida d)
+decl_var: ident=IDENTIFICADOR (COMA ident=IDENTIFICADOR)* PyP t=tipo {almacenar cada ident con tipo t en d};
 
-parametro: t=tipo ident=IDENTIFICADOR {almacenar ident con tipo t en tipoVariables[LOCAL]};
-parametros: parametro (COMA parametro)*;
+(parámetro de salida p)
+parametro: t=tipo ident=IDENTIFICADOR {almacenar ident con tipo t en p};
+(parámetro de salida ps)
+parametros: p=parametro (COMA p=parametro)* {almacenar cada p en ps};
 devolver: DEV expr (COMA expr)*;
 instrucciones_funcion: INSTRUCCIONES (instruccion|devolver)*;
 
-def_func: FUNCION IDENTIFICADOR INICIO_PARENTESIS parametros? FIN_PARENTESIS DEV INICIO_PARENTESIS parametros FIN_PARENTESIS variables instrucciones_funcion FFUNCION; {borrar tipoVariables[LOCAL]}
-def_proc: PROCEDIMIENTO IDENTIFICADOR INICIO_PARENTESIS parametros? FIN_PARENTESIS variables instrucciones FPROCEDIMIENTO; {borrar tipoVariables[LOCAL]}
+def_func: FUNCION nombreFunc=IDENTIFICADOR INICIO_PARENTESIS ps=parametros? FIN_PARENTESIS DEV INICIO_PARENTESIS ps=parametros FIN_PARENTESIS vs=variables instrucciones_funcion FFUNCION; 
+{almacenar cada ps en tipoVariable[nombreFunc]} {almacenar vs en tipoVariable[nombreFunc]}
+def_proc: PROCEDIMIENTO nombreProc=IDENTIFICADOR INICIO_PARENTESIS ps=parametros? FIN_PARENTESIS vs=variables instrucciones FPROCEDIMIENTO;
+{almacenar cada ps en tipoVariable[nombreProc]} {almacenar vs en tipoVariable[nombreProc]}
 
 subprogramas: SUBPROGRAMAS (def_func | def_proc)*;
 
-(funcion obtenerScopeVariable(declr_var)
-    // PROGRAMA/FUNCION/PROC -> VARIABLES -> decl_vars
-    Si el padre del padre de declr_var es PROGRAMA entonces GLOBAL
-    sino LOCAL
+(funcion declaraVariable(var, scope)
+si tipoVariables[scope] no existe entonces crear tipoVariables[scope] y almaenar la variable dentro
+sino 
+    si var.ident existe en tipoVariables[scope] entonces
+       si var.tipo es distinto al almacenado entonces ERROR
+       sino WARNING
+    sino almacenar en tipoVariables[scope]
 )
-
 ```

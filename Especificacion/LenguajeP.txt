@@ -52,7 +52,7 @@ Seccion instrucciones:
     - Aserto
 
 Semántica del lenguaje P:
-- Cada variable declarada tiene un tipo invariable (Objetivo 1, Decision 1 y 2)
+- Cada variable declarada tiene un tipo invariable -> Hecho
 - Es un lenguaje fuertemente tipado, las expresiones de distintos tipos no pueden mezclarse.
     - (Está implícito pero cualquier asignación que resuelva a un tipo indefinido es incorrecta)
     - Aplica también a las condiciones, dado que están formadas por expresiones
