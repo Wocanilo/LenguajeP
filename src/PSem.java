@@ -1,6 +1,7 @@
 import org.antlr.v4.runtime.tree.TerminalNode;
 import util.Variable;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -8,6 +9,7 @@ import java.util.List;
 public class PSem extends PSintBaseVisitor<Object>{
     // Almacena el tipo de cada variable
     private final HashMap<String, HashMap<String, Integer>> tipoVariables = new HashMap<>();
+    private final List<String> funcionesYProcedimientos = new ArrayList<>();
 
     // Funcion auxiliar que traduce los ID a String para los mensajes de error
     private String idToString(Integer id){
@@ -23,6 +25,16 @@ public class PSem extends PSintBaseVisitor<Object>{
             default:
                 return "DESCONOCIDO";
         }
+    }
+
+    // Funcion auxiliar que declara una funcion o procedimiento
+    //    (funcion declarafuncionProcedimiento(ident)
+    //    si ident en funcionesYProcedimientos entonces ERROR
+    //    sino almacenar ident en funcionesYProcedimientos
+    //    )
+    private void declaraFuncionProcedimiento(String identificador){
+        if(this.funcionesYProcedimientos.contains(identificador)) System.out.println(String.format("ERROR: Funcion/Procedimiento '%s' redeclarado.", identificador));
+        else this.funcionesYProcedimientos.add(identificador);
     }
 
     // Funcion auxiliar que declara una variable en el contexto pasado
@@ -134,8 +146,12 @@ public class PSem extends PSintBaseVisitor<Object>{
         return parametros;
     }
 
+    // Objetivo 1
     // def_func: FUNCION nombreFunc=IDENTIFICADOR INICIO_PARENTESIS ps=parametros? FIN_PARENTESIS DEV INICIO_PARENTESIS ps=parametros FIN_PARENTESIS vs=variables instrucciones_funcion FFUNCION;
     // {almacenar cada ps en tipoVariable[nombreFunc]} {almacenar vs en tipoVariable[nombreFunc]}
+    // Objetivo 2
+    // def_func: FUNCION ident=IDENTIFICADOR INICIO_PARENTESIS parametros? FIN_PARENTESIS DEV INICIO_PARENTESIS parametros FIN_PARENTESIS variables instrucciones_funcion FFUNCION;
+    // {declarafuncionProcedimiento(ident)}
     @Override
     public Object visitDef_func(PSint.Def_funcContext ctx){
         String nombreFuncion = ctx.getToken(PSint.IDENTIFICADOR, 0).getText(); // El nombre es el unico identificador que hay en una declaracion de funcion
@@ -167,11 +183,18 @@ public class PSem extends PSintBaseVisitor<Object>{
             }
         }
 
+        // Declaramos la funcion
+        this.declaraFuncionProcedimiento(nombreFuncion);
+
         return super.visitDef_func(ctx); // Queremos que se sigan visitando los hijos
     }
 
+    // Objetivo 1
     // def_proc: PROCEDIMIENTO nombreProc=IDENTIFICADOR INICIO_PARENTESIS ps=parametros? FIN_PARENTESIS vs=variables instrucciones FPROCEDIMIENTO;
     // {almacenar cada ps en tipoVariable[nombreProc]} {almacenar vs en tipoVariable[nombreProc]}
+    // Objetivo 2
+    // def_proc: PROCEDIMIENTO IDENTIFICADOR INICIO_PARENTESIS parametros? FIN_PARENTESIS variables instrucciones FPROCEDIMIENTO;
+    // {declarafuncionProcedimiento(ident)}
     @Override
     public Object visitDef_proc(PSint.Def_procContext ctx){
         String nombreProc = ctx.getToken(PSint.IDENTIFICADOR, 0).getText(); // El nombre es el unico identificador que hay en una declaracion de procedimiento
@@ -181,6 +204,9 @@ public class PSem extends PSintBaseVisitor<Object>{
             List<Variable> parametrosEntrada = (List<Variable>)visit(ctx.parametros()); // Los procedimientos tan solo tienen parámetros de entrada
             for(Variable var: parametrosEntrada) this.declaraVariable(var, nombreProc);
         }
+
+        // Declaramos el procedimiento
+        this.declaraFuncionProcedimiento(nombreProc);
 
         return super.visitDef_proc(ctx); // Queremos que se sigan visitando los hijos
     }

@@ -91,3 +91,53 @@ sino
     sino almacenar en tipoVariables[scope]
 )
 ```
+## Objetivo 2
+Detectar funciones o procedimientos redeclarados.
+
+Las funciones o procedimientos son inmutables. Una vez declaradas, no es posible declarar otra funcion 
+o procedimiento con el mismo identificador.
+
+### Ejemplo
+```
+SUBPROGRAMAS
+    FUNCION mayor(NUM d) dev (LOG e, NUM i)
+    VARIABLES
+        j: NUM;
+    INSTRUCCIONES
+        j = 0;
+    FFUNCION
+    PROCEDIMIENTO mayor()
+    VARIABLES
+        j: NUM;
+    INSTRUCCIONES
+        j = 0;
+    FPROCEDIMIENTO
+(Error, redeclaracion de mayor)
+```
+
+### Decisiones de diseño
+
+#### Decisión de diseño 1
+Para poder detectar redeclaraciones es necesario almacenar el identificador de cada una de las funciones o
+procedimientos declarados.
+
+Por ello, usaremos un almacén de identificadores de funciones/proc.
+
+| identificador |
+|---------------|
+| mayor         |
+| mult             |
+| mayor_que           |
+
+```
+def_func: FUNCION ident=IDENTIFICADOR INICIO_PARENTESIS parametros? FIN_PARENTESIS DEV INICIO_PARENTESIS parametros FIN_PARENTESIS variables instrucciones_funcion FFUNCION;
+{declarafuncionProcedimiento(ident)}
+def_proc: PROCEDIMIENTO IDENTIFICADOR INICIO_PARENTESIS parametros? FIN_PARENTESIS variables instrucciones FPROCEDIMIENTO;
+{declarafuncionProcedimiento(ident)}
+
+(funcion declarafuncionProcedimiento(ident)
+    si ident en funcionesYProcedimientos entonces ERROR
+    sino almacenar ident en funcionesYProcedimientos
+)
+
+```
