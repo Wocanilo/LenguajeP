@@ -180,3 +180,39 @@ def_proc: PROCEDIMIENTO IDENTIFICADOR INICIO_PARENTESIS parametros? FIN_PARENTES
 
 ```
 Esta decision amplia la decision 1 del Objetivo 2.
+
+## Objetivo 4
+Comprobar que no se llama a un procedimiento o funcion que no existe
+
+### Ejemplo
+
+```
+PROGRAMA
+VARIABLES
+    i,max,min:NUM;
+    s:SEQ(NUM);
+SUBPROGRAMAS
+    FUNCION mayor(NUM de) dev (NUM e, NUM i)
+    VARIABLES
+        j: NUM;
+    INSTRUCCIONES
+        j = 0;
+        dev j,j
+    FFUNCION
+INSTRUCCIONES
+    x = noexiste(1);
+(ERROR)
+```
+
+### Decisiones de diseño
+#### Decision 1
+Para poder decidir si una funcion o procedimiento existe, debemos almacenar cada declaracion de funcion o procedimiento.
+
+Dado que el objetivo 2 define un almacen de funciones y procedimientos, usaremos dicho almacen.
+
+##### Gramatica atribuida
+
+```
+llamada_func_proc: ident=IDENTIFICADOR INICIO_PARENTESIS expr (COMA expr)* FIN_PARENTESIS; {si ident no existe en almacen entonces ERROR}
+
+```

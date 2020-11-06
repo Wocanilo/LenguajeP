@@ -216,4 +216,15 @@ public class PSem extends PSintBaseVisitor<Object>{
 
         return super.visitDef_proc(ctx); // Queremos que se sigan visitando los hijos
     }
+
+    // llamada_func_proc: ident=IDENTIFICADOR INICIO_PARENTESIS expr (COMA expr)* FIN_PARENTESIS; {si ident no existe en almacen entonces ERROR}
+    @Override
+    public Object visitLlamada_func_proc(PSint.Llamada_func_procContext ctx){
+        // Comprobamos si la funcion/proc existe
+        String nombreFuncionProc = ctx.getStart().getText();
+
+        if(!this.funcionesYProcedimientos.contains(nombreFuncionProc)) System.out.println(String.format("ERROR: Llamada a funcion/procedimiento '%s' no declarado", nombreFuncionProc));
+
+        return null; // No es necesario visitar sus hijos (no tiene)
+    }
 }
