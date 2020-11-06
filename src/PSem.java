@@ -27,14 +27,20 @@ public class PSem extends PSintBaseVisitor<Object>{
         }
     }
 
-    // Funcion auxiliar que declara una funcion o procedimiento
-    //    (funcion declarafuncionProcedimiento(ident)
-    //    si ident en funcionesYProcedimientos entonces ERROR
-    //    sino almacenar ident en funcionesYProcedimientos
-    //    )
+    // (funcion declarafuncionProcedimiento(ident)
+    //    si ident igual a vacia o ultima_posicion entonces ERROR
+    //    sino
+    //        si ident en funcionesYProcedimientos entonces ERROR
+    //        sino almacenar ident en funcionesYProcedimientos
+    //)
     private void declaraFuncionProcedimiento(String identificador){
-        if(this.funcionesYProcedimientos.contains(identificador)) System.out.println(String.format("ERROR: Funcion/Procedimiento '%s' redeclarado.", identificador));
-        else this.funcionesYProcedimientos.add(identificador);
+        if(identificador.equalsIgnoreCase("vacia")) System.out.println("ERROR: Funcion/Procedimiento utiliza la palabra reservada 'vacia'");
+        else if (identificador.equalsIgnoreCase("ultima_posicion")) System.out.println("ERROR: Funcion/Procedimiento utiliza la palabra reservada 'ultima_posicion'");
+        // Si no sobreescribe las funciones/procedimientos predefinidos declaramos la funcion/proc.
+        else {
+            if(this.funcionesYProcedimientos.contains(identificador)) System.out.println(String.format("ERROR: Funcion/Procedimiento '%s' redeclarado.", identificador));
+            else this.funcionesYProcedimientos.add(identificador);
+        }
     }
 
     // Funcion auxiliar que declara una variable en el contexto pasado

@@ -91,6 +91,8 @@ sino
     sino almacenar en tipoVariables[scope]
 )
 ```
+
+Decision 2 => Decision 1
 ## Objetivo 2
 Detectar funciones o procedimientos redeclarados.
 
@@ -128,7 +130,7 @@ Por ello, usaremos un almacén de identificadores de funciones/proc.
 | mayor         |
 | mult             |
 | mayor_que           |
-
+##### Gramatica atribuida
 ```
 def_func: FUNCION ident=IDENTIFICADOR INICIO_PARENTESIS parametros? FIN_PARENTESIS DEV INICIO_PARENTESIS parametros FIN_PARENTESIS variables instrucciones_funcion FFUNCION;
 {declarafuncionProcedimiento(ident)}
@@ -141,3 +143,40 @@ def_proc: PROCEDIMIENTO IDENTIFICADOR INICIO_PARENTESIS parametros? FIN_PARENTES
 )
 
 ```
+## Objetivo 3
+Comprobar que no se sobreescriban las funciones __vacia__ y __ultima_posicion__
+
+### Ejemplos
+```
+SUBPROGRAMAS
+    PROCEDIMIENTO vacia()
+    VARIABLES
+        j: NUM;
+    INSTRUCCIONES
+        j = 0;
+    FPROCEDIMIENTO
+(ERROR)
+```
+
+### Decisiones de diseño
+#### Decision 1
+A la hora de declarar funciones o procedimientos, debemos comprobar que no se utilizan las palabras reservadas
+**vacia** y **ultima_posicion**
+
+##### Gramatica atribuida
+
+```
+def_func: FUNCION ident=IDENTIFICADOR INICIO_PARENTESIS parametros? FIN_PARENTESIS DEV INICIO_PARENTESIS parametros FIN_PARENTESIS variables instrucciones_funcion FFUNCION;
+{declarafuncionProcedimiento(ident)}
+def_proc: PROCEDIMIENTO IDENTIFICADOR INICIO_PARENTESIS parametros? FIN_PARENTESIS variables instrucciones FPROCEDIMIENTO;
+{declarafuncionProcedimiento(ident)}
+
+(funcion declarafuncionProcedimiento(ident)
+    si ident igual a vacia o ultima_posicion entonces ERROR
+    sino
+        si ident en funcionesYProcedimientos entonces ERROR
+        sino almacenar ident en funcionesYProcedimientos
+)
+
+```
+Esta decision amplia la decision 1 del Objetivo 2.
