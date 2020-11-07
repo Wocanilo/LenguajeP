@@ -4,7 +4,7 @@ options{
     tokenVocab=PLex;
 }
 
-programa: PROGRAMA variables subprogramas instrucciones EOF;
+programa: PROGRAMA variables subprogramas instrucciones_programa EOF;
 
 tipo: NUM
     | LOG
@@ -33,8 +33,6 @@ expr_entera: expr_entera MAS expr_entera
 // Los boleanos no tienen operaciones. Se pueden realizar llamadas a funciones
 expr_booleana: TRUE
              | FALSE
-             | IDENTIFICADOR
-             | llamada_func_proc
              ;
 
 elementos_secuencia: (expr_entera|expr_booleana) (COMA (expr_entera|expr_booleana))*; // De forma implicita permite la llamada a funciones
@@ -80,16 +78,17 @@ iteracion: MIENTRAS INICIO_PARENTESIS condicion_completa FIN_PARENTESIS HACER (i
 
 instruccion: (asignacion|condicional|iteracion);
 
-instrucciones: INSTRUCCIONES instruccion+; // Los programas con 0 instrucciones no son correctos
+instrucciones_programa: INSTRUCCIONES instruccion+; // Los programas con 0 instrucciones no son correctos
 
 // Seccion de subprogramas. Se ha separado la definicion de parametros para facilitar su parseo
 parametro: tipo IDENTIFICADOR;
 parametros: parametro (COMA parametro)*;
 devolver: DEV expr (COMA expr)*;
 instrucciones_funcion: INSTRUCCIONES (instruccion|devolver)+; // Las funciones sin instrucciones no son correctas
+instrucciones_procedimiento: INSTRUCCIONES (instruccion|devolver)+; // Las funciones sin instrucciones no son correctas
 
 def_func: FUNCION IDENTIFICADOR INICIO_PARENTESIS parametros? FIN_PARENTESIS DEV INICIO_PARENTESIS parametros FIN_PARENTESIS variables instrucciones_funcion FFUNCION;
-def_proc: PROCEDIMIENTO IDENTIFICADOR INICIO_PARENTESIS parametros? FIN_PARENTESIS variables instrucciones FPROCEDIMIENTO;
+def_proc: PROCEDIMIENTO IDENTIFICADOR INICIO_PARENTESIS parametros? FIN_PARENTESIS variables instrucciones_procedimiento FPROCEDIMIENTO;
 
 // La seccion de subprogramas esta formado por 0 o varias declaraciones de funciones y/o procedimientos
 subprogramas: SUBPROGRAMAS (def_func | def_proc)*;

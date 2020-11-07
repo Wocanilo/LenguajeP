@@ -147,16 +147,6 @@ public interface PSintListener extends ParseTreeListener {
 	 */
 	void exitCondicional(PSint.CondicionalContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link PSint#funcion_avance}.
-	 * @param ctx the parse tree
-	 */
-	void enterFuncion_avance(PSint.Funcion_avanceContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link PSint#funcion_avance}.
-	 * @param ctx the parse tree
-	 */
-	void exitFuncion_avance(PSint.Funcion_avanceContext ctx);
-	/**
 	 * Enter a parse tree produced by {@link PSint#ruptura}.
 	 * @param ctx the parse tree
 	 */
@@ -187,35 +177,15 @@ public interface PSintListener extends ParseTreeListener {
 	 */
 	void exitInstruccion(PSint.InstruccionContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link PSint#variable_cuantificada}.
+	 * Enter a parse tree produced by {@link PSint#instrucciones_programa}.
 	 * @param ctx the parse tree
 	 */
-	void enterVariable_cuantificada(PSint.Variable_cuantificadaContext ctx);
+	void enterInstrucciones_programa(PSint.Instrucciones_programaContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link PSint#variable_cuantificada}.
+	 * Exit a parse tree produced by {@link PSint#instrucciones_programa}.
 	 * @param ctx the parse tree
 	 */
-	void exitVariable_cuantificada(PSint.Variable_cuantificadaContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link PSint#aserto}.
-	 * @param ctx the parse tree
-	 */
-	void enterAserto(PSint.AsertoContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link PSint#aserto}.
-	 * @param ctx the parse tree
-	 */
-	void exitAserto(PSint.AsertoContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link PSint#instrucciones}.
-	 * @param ctx the parse tree
-	 */
-	void enterInstrucciones(PSint.InstruccionesContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link PSint#instrucciones}.
-	 * @param ctx the parse tree
-	 */
-	void exitInstrucciones(PSint.InstruccionesContext ctx);
+	void exitInstrucciones_programa(PSint.Instrucciones_programaContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link PSint#parametro}.
 	 * @param ctx the parse tree
@@ -256,6 +226,16 @@ public interface PSintListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitInstrucciones_funcion(PSint.Instrucciones_funcionContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link PSint#instrucciones_procedimiento}.
+	 * @param ctx the parse tree
+	 */
+	void enterInstrucciones_procedimiento(PSint.Instrucciones_procedimientoContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link PSint#instrucciones_procedimiento}.
+	 * @param ctx the parse tree
+	 */
+	void exitInstrucciones_procedimiento(PSint.Instrucciones_procedimientoContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link PSint#def_func}.
 	 * @param ctx the parse tree

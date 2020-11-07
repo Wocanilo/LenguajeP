@@ -183,18 +183,6 @@ public class PSintBaseListener implements PSintListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterFuncion_avance(PSint.Funcion_avanceContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitFuncion_avance(PSint.Funcion_avanceContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
 	@Override public void enterRuptura(PSint.RupturaContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -231,37 +219,13 @@ public class PSintBaseListener implements PSintListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterVariable_cuantificada(PSint.Variable_cuantificadaContext ctx) { }
+	@Override public void enterInstrucciones_programa(PSint.Instrucciones_programaContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitVariable_cuantificada(PSint.Variable_cuantificadaContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterAserto(PSint.AsertoContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitAserto(PSint.AsertoContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterInstrucciones(PSint.InstruccionesContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitInstrucciones(PSint.InstruccionesContext ctx) { }
+	@Override public void exitInstrucciones_programa(PSint.Instrucciones_programaContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -310,6 +274,18 @@ public class PSintBaseListener implements PSintListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitInstrucciones_funcion(PSint.Instrucciones_funcionContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterInstrucciones_procedimiento(PSint.Instrucciones_procedimientoContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitInstrucciones_procedimiento(PSint.Instrucciones_procedimientoContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

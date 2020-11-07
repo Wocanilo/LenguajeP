@@ -10,6 +10,9 @@ public class PSem extends PSintBaseVisitor<Object>{
     // Almacena el tipo de cada variable
     private final HashMap<String, HashMap<String, Integer>> tipoVariables = new HashMap<>();
     private final List<String> funcionesYProcedimientos = new ArrayList<>();
+    private final HashMap<String, List<Integer>> tipoFunciones = new HashMap<>();
+
+    private String scopeActual = "GLOBAL";
 
     // Funcion auxiliar que traduce los ID a String para los mensajes de error
     private String idToString(Integer id){
@@ -158,9 +161,18 @@ public class PSem extends PSintBaseVisitor<Object>{
     // Objetivo 2
     // def_func: FUNCION ident=IDENTIFICADOR INICIO_PARENTESIS parametros? FIN_PARENTESIS DEV INICIO_PARENTESIS parametros FIN_PARENTESIS variables instrucciones_funcion FFUNCION;
     // {declarafuncionProcedimiento(ident)}
+    // Objetivo 5
+    // def_func: FUNCION ident=IDENTIFICADOR INICIO_PARENTESIS parametros? FIN_PARENTESIS DEV INICIO_PARENTESIS parametros FIN_PARENTESIS variables instrucciones_funcion FFUNCION;
+    //{establecer scopeActual con el valor de ident}
+    // Objetivo 5
+    // def_func: FUNCION ident=IDENTIFICADOR INICIO_PARENTESIS parametros? FIN_PARENTESIS DEV INICIO_PARENTESIS ps=parametros FIN_PARENTESIS variables instrucciones_funcion FFUNCION;
+    //{almacenar cada ident con los tipos contenidos en ps en almacen tipos funciones}
     @Override
     public Object visitDef_func(PSint.Def_funcContext ctx){
         String nombreFuncion = ctx.getToken(PSint.IDENTIFICADOR, 0).getText(); // El nombre es el unico identificador que hay en una declaracion de funcion
+        // Almacenamos el scope actual
+        this.scopeActual = nombreFuncion;
+
         List<Variable> parametrosEntrada;
         List<Variable> parametrosSalida;
 
@@ -177,9 +189,15 @@ public class PSem extends PSintBaseVisitor<Object>{
 
         List<List<Variable>> variablesSeccion = (List<List<Variable>>)visit(ctx.variables()); // Debemos procesar la sección de variables de la función
 
+        List<Integer> tiposSalida = new ArrayList<>();
         // Declaramos todos los parámetros
         for(Variable var: parametrosEntrada) this.declaraVariable(var, nombreFuncion);
-        for(Variable var: parametrosSalida) this.declaraVariable(var, nombreFuncion);
+        for(Variable var: parametrosSalida) {
+            this.declaraVariable(var, nombreFuncion);
+
+            // Almacenamos cada tipo en la lista de tipos de salida
+            tiposSalida.add(var.getTipo());
+        }
 
         // Declaramos las variables de la seccion de variables
         for(List<Variable> decl_var: variablesSeccion){
@@ -192,6 +210,9 @@ public class PSem extends PSintBaseVisitor<Object>{
         // Declaramos la funcion
         this.declaraFuncionProcedimiento(nombreFuncion);
 
+        // Almacenamos el tipo/tipos de la funcion
+        this.tipoFunciones.put(nombreFuncion, tiposSalida);
+
         return super.visitDef_func(ctx); // Queremos que se sigan visitando los hijos
     }
 
@@ -201,14 +222,31 @@ public class PSem extends PSintBaseVisitor<Object>{
     // Objetivo 2
     // def_proc: PROCEDIMIENTO IDENTIFICADOR INICIO_PARENTESIS parametros? FIN_PARENTESIS variables instrucciones FPROCEDIMIENTO;
     // {declarafuncionProcedimiento(ident)}
+    // Objetivo 5
+    // def_proc: PROCEDIMIENTO ident=IDENTIFICADOR INICIO_PARENTESIS parametros? FIN_PARENTESIS variables instrucciones_procedimiento FPROCEDIMIENTO;
+    //{establecer scopeActual con el valor de ident}
     @Override
     public Object visitDef_proc(PSint.Def_procContext ctx){
         String nombreProc = ctx.getToken(PSint.IDENTIFICADOR, 0).getText(); // El nombre es el unico identificador que hay en una declaracion de procedimiento
+
+        // Almacenamos el scope actual
+        this.scopeActual = nombreProc;
 
         // Comprobamos que existan parámetros
         if(ctx.parametros() != null) {
             List<Variable> parametrosEntrada = (List<Variable>)visit(ctx.parametros()); // Los procedimientos tan solo tienen parámetros de entrada
             for(Variable var: parametrosEntrada) this.declaraVariable(var, nombreProc);
+        }
+
+        // Debemos procesar la sección de variables del procedimiento
+        List<List<Variable>> variablesSeccion = (List<List<Variable>>)visit(ctx.variables());
+
+        // Declaramos las variables de la seccion de variables
+        for(List<Variable> decl_var: variablesSeccion){
+            for(Variable var: decl_var){
+                // Declaramos la variable
+                this.declaraVariable(var, nombreProc);
+            }
         }
 
         // Declaramos el procedimiento
@@ -226,5 +264,104 @@ public class PSem extends PSintBaseVisitor<Object>{
         if(!this.funcionesYProcedimientos.contains(nombreFuncionProc)) System.out.println(String.format("ERROR: Llamada a funcion/procedimiento '%s' no declarado", nombreFuncionProc));
 
         return null; // No es necesario visitar sus hijos (no tiene)
+    }
+
+    // Objetivo 5:
+    // instrucciones_programa: INSTRUCCIONES instruccion+; {establecer scopeActual a GLOBAL}
+    @Override
+    public Object visitInstrucciones_programa(PSint.Instrucciones_programaContext ctx){
+        this.scopeActual = "GLOBAL";
+
+        return super.visitInstrucciones_programa(ctx);
+    }
+
+    //  (parametro de salida tipo)
+    //  expr_booleana: TRUE {tipo=booleano}
+    //           | FALSE {tipo=booleano}
+    //  ;
+    @Override
+    public Object visitExpr_booleana(PSint.Expr_booleanaContext ctx){
+        return PSint.LOG;
+    }
+
+    // (parametro de salida tipo)
+    //expr_entera: expr_entera MAS expr_entera
+    //            | expr_entera MENOS expr_entera
+    //            | expr_entera POR expr_entera
+    //            | INICIO_PARENTESIS expr_entera FIN_PARENTESIS
+    //            | ident=IDENTIFICADOR {tipo=tipoVariables(ident)}
+    //            | ENTERO {tipo=entero)
+    //            | llamada_func_proc {obtenerTipoFuncionProc(llamada_func_proc)}
+    //            ;
+    //
+    // Devuelve null para no tipo y en caso contrario devuelve el tipo de la expresion.
+    // Puede devolver cualquier tipo dado que la rama IDENTIFICADOR se visita en todos los casos.
+    @Override
+    public Object visitExpr_entera(PSint.Expr_enteraContext ctx){
+        // Casos base
+        if(ctx.expr_entera().isEmpty()){
+            switch(ctx.getStart().getType()){
+                case PSint.ENTERO:
+                    return PSint.NUM;
+                case PSint.IDENTIFICADOR:
+                    // Importante recordar que esta rama tambien se visita en las expresiones booleanas
+                    if(ctx.llamada_func_proc() != null) {
+                        String identificador = ctx.getStart().getText();
+
+                        if(!this.tipoFunciones.containsKey(identificador)) return null; // Se trata de procedimiento
+                        else{
+                            List<Integer> tiposFuncion = this.tipoFunciones.get(identificador);
+
+                            if(tiposFuncion.size() == 1) return tiposFuncion.get(0);
+                            else return null; // No se pueden usar funciones que devuelvan varios valores en las expresiones
+                        }
+                    }else{
+                        // Es una variable
+                        // Comprobamos que exista el scope
+                        if(this.tipoVariables.containsKey(this.scopeActual)){
+                            // Obtenemos el scope actual
+                            HashMap<String, Integer> variablesScope = this.tipoVariables.get(this.scopeActual);
+                            String identificador = ctx.getStart().getText();
+
+                            if(!variablesScope.containsKey(identificador)) {
+                                // Aviso de que la variable usada no existe en el contexto actual
+                                System.out.println(String.format("ERROR: La variable '%s' no existe en el contexto actual '%s'", identificador, this.scopeActual));
+                                return null;
+                            }
+                            else {
+                                Integer tipoIdent = variablesScope.get(identificador);
+                                // Devolvemos el tipo de la variable.
+                                return tipoIdent;
+                            }
+                        }else{
+                            // Si no existe el scope no tiene variables, por lo que es NO_TIPO
+                            return null;
+                        }
+                    }
+                default:
+                    // Failsafe para debug
+                    System.out.println(ctx.getStart().getText());
+                    System.out.println("No implementado (visitExpr_entera)");
+                    return null;
+            }
+        }
+        else if(ctx.expr_entera().size() == 1){
+            // Sacamos la expr anidada en los parentesis
+            return (Integer) visit(ctx.expr_entera(0));
+        } else{
+            // Se trata de una suma, una multiplicacion o una resta, visitamos cada operando
+            Integer tipoPrimerOperando = (Integer) visit(ctx.expr_entera(0));
+            Integer tipoSegundoOperando = (Integer) visit(ctx.expr_entera(1));
+
+            // Si alguno es nulo entonces la operacion es no_tipo
+            if(tipoPrimerOperando == null || tipoSegundoOperando == null || tipoPrimerOperando != PSint.NUM || tipoSegundoOperando != PSint.NUM) {
+                System.out.println("KO SUMA " + ctx.getText());
+                return null;
+            }
+            else {
+                System.out.println("OK SUMA " + ctx.getText());
+                return PSint.NUM;
+            }
+        }
     }
 }

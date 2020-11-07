@@ -92,7 +92,8 @@ sino
 )
 ```
 
-Decision 2 => Decision 1
+ARGUMENTO DISEÑO 2: DECISIÓN DISEÑO 2=> Decision 1 (a)
+
 ## Objetivo 2
 Detectar funciones o procedimientos redeclarados.
 
@@ -215,4 +216,100 @@ Dado que el objetivo 2 define un almacen de funciones y procedimientos, usaremos
 ```
 llamada_func_proc: ident=IDENTIFICADOR INICIO_PARENTESIS expr (COMA expr)* FIN_PARENTESIS; {si ident no existe en almacen entonces ERROR}
 
+```
+
+## Objetivo 5
+Analizador semantico capaz de decidir si las expresiones de un programa en el lenguaje P estan bien tipadas.
+
+- Una expresión esta bien tipada cuando no mezcla expresiones con distinto tipo.
+- Una expresión es de tipo entera si y solo si es una constante entera, una variable entera, una suma, resta o producto de
+variables enteras o una llamada a una función que devuelva una constante entera.
+- Una expresión es de tipo booleana si y solo si es una constante booleana, una variable booleana o una llamada a una función
+que devuelva una constante booleana
+- Una expresión es de tipo secuencia entera cuando si y solo si es una lista dada por extension cuyos elementos son todos enteros
+ (la lista vacía cumple esta condición), una variable de tipo lista entera o una llamada a una función que devuelva una secuencia entera.
+ - Una expresión es de tipo secuencia booleana cuando si y solo si es una lista dada por extension cuyos elementos son todos booleanos
+    (la lista vacía cumple esta condición), una variable de tipo lista booleana o una llamada a una función que devuelva una secuencia booleana.
+ - Una expresión no tiene tipo si y solo si no es posible asignarle tipo según las definiciones anteriores
+
+### Ejemplo
+```
+PROGRAMA
+VARIABLES
+    i:NUM;
+    e:LOG;
+SUBPROGRAMAS
+INSTRUCCIONES
+    i = i + e;
+(ERROR)
+```
+### Decisiones de diseño
+#### Decision 1
+Para poder decidir el tipado de una expresion, es necesario conocer el tipo de las funciones que la forman, por ello
+usaremos un almacen de tipos de funciones.
+
+| identificador | tipo     |
+|---------------|----------|
+| mayor        | entero      |
+| mayor_de             | booleano, entero      |
+
+##### Gramatica atribuida
+```
+(parametro de salida e)
+parametro: t=tipo ident=IDENTIFICADOR; {almacenar ident con tipo t en e}
+(parametro de salida ps)
+parametros: p=parametro (COMA p=parametro)*; {almacenar p en ps}
+
+def_func: FUNCION ident=IDENTIFICADOR INICIO_PARENTESIS parametros? FIN_PARENTESIS DEV INICIO_PARENTESIS ps=parametros FIN_PARENTESIS variables instrucciones_funcion FFUNCION;
+{almacenar cada ident con los tipos contenidos en ps en almacen tipos funciones}
+
+```
+
+#### Decision 2
+Para poder decidir el tipado de las variables, es necesario conocer el contexto en el que se encuentra la expresion. 
+
+#####  Gramatica atribuida
+```
+
+def_func: FUNCION ident=IDENTIFICADOR INICIO_PARENTESIS parametros? FIN_PARENTESIS DEV INICIO_PARENTESIS parametros FIN_PARENTESIS variables instrucciones_funcion FFUNCION;
+{establecer scopeActual con el valor de ident}
+def_proc: PROCEDIMIENTO ident=IDENTIFICADOR INICIO_PARENTESIS parametros? FIN_PARENTESIS variables instrucciones_procedimiento FPROCEDIMIENTO;
+{establecer scopeActual con el valor de ident}
+
+instrucciones_programa: INSTRUCCIONES instruccion+; {establecer scopeActual a GLOBAL}
+
+```
+#### Decision 3
+
+##### Gramatica atribuida
+```
+(parametro de salida tipo)
+expr_entera: expr_entera MAS expr_entera
+            | expr_entera MENOS expr_entera
+            | expr_entera POR expr_entera
+            | INICIO_PARENTESIS expr_entera FIN_PARENTESIS
+            | ident=IDENTIFICADOR {tipo=tipoVariables(ident)}
+            | ENTERO {tipo=entero)
+            | llamada_func_proc {obtenerTipoFuncionProc(llamada_func_proc)}
+            ;
+
+(parametro de salida tipo)
+expr_booleana: TRUE {tipo=booleano}
+             | FALSE {tipo=booleano}
+             ;
+
+(parametro de salida elementos)
+elementos_secuencia: elemento=(expr_entera|expr_booleana) (COMA elemento=(expr_entera|expr_booleana))*; {almacenar cada elemento en elementos}
+
+(parámetro de salida tipo)
+expr_secuencia: INICIO_CORCHETE elementos=elementos_secuencia FIN_CORCHETE {tipo=tipoSecuencia(elementos)} 
+              | IDENTIFICADOR INICIO_CORCHETE expr_entera FIN_CORCHETE {tipo=tipoVariable(ident) si tipoVariable(ident) es SEQ sino no_tipo}
+              | INICIO_CORCHETE FIN_CORCHETE {tipo=SEQ}
+              ;
+
+// Definimos los tipos posibles de expresion
+expr: expr_entera
+    | expr_booleana
+    | expr_secuencia
+    ;
 ```

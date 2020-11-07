@@ -94,12 +94,6 @@ public interface PSintVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitCondicional(PSint.CondicionalContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link PSint#funcion_avance}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitFuncion_avance(PSint.Funcion_avanceContext ctx);
-	/**
 	 * Visit a parse tree produced by {@link PSint#ruptura}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
@@ -118,23 +112,11 @@ public interface PSintVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitInstruccion(PSint.InstruccionContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link PSint#variable_cuantificada}.
+	 * Visit a parse tree produced by {@link PSint#instrucciones_programa}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitVariable_cuantificada(PSint.Variable_cuantificadaContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link PSint#aserto}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitAserto(PSint.AsertoContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link PSint#instrucciones}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitInstrucciones(PSint.InstruccionesContext ctx);
+	T visitInstrucciones_programa(PSint.Instrucciones_programaContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link PSint#parametro}.
 	 * @param ctx the parse tree
@@ -159,6 +141,12 @@ public interface PSintVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitInstrucciones_funcion(PSint.Instrucciones_funcionContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link PSint#instrucciones_procedimiento}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitInstrucciones_procedimiento(PSint.Instrucciones_procedimientoContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link PSint#def_func}.
 	 * @param ctx the parse tree
