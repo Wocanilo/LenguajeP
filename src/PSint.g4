@@ -75,14 +75,10 @@ condicion_completa: condicion_completa CONJUNCION condicion_completa
 condicional: SI INICIO_PARENTESIS condicion_completa FIN_PARENTESIS ENTONCES instruccion+ (SINO instruccion+)? FSI;
 
 // Estructura iterativa mientras-hacer-fmientras
-funcion_avance: INICIO_LLAVE AVANCE PyP IDENTIFICADOR INICIO_PARENTESIS expr COMA expr FIN_PARENTESIS FIN_LLAVE;
 ruptura: RUPTURA PyC;
-iteracion: MIENTRAS INICIO_PARENTESIS condicion_completa FIN_PARENTESIS HACER funcion_avance? (instruccion|ruptura)+ FMIENTRAS;
+iteracion: MIENTRAS INICIO_PARENTESIS condicion_completa FIN_PARENTESIS HACER (instruccion|ruptura)+ FMIENTRAS;
 
-instruccion: (asignacion|condicional|iteracion|aserto);
-
-variable_cuantificada: IDENTIFICADOR PyP INICIO_CORCHETE elementos_secuencia FIN_CORCHETE COMA condicion_completa;
-aserto: INICIO_LLAVE (PARATODO|EXISTE) INICIO_PARENTESIS variable_cuantificada FIN_PARENTESIS FIN_LLAVE;
+instruccion: (asignacion|condicional|iteracion);
 
 instrucciones: INSTRUCCIONES instruccion+; // Los programas con 0 instrucciones no son correctos
 
