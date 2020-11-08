@@ -56,8 +56,9 @@ Semántica del lenguaje P:
 - Una vez declarada una funcion o procedimiento es inmutable -> Hecho
 - Dado que el lenguaje predefine dos funciones para las secuencias, vacia y ultima_posicion, debemos comprobar que no se trata de sobreescribir dichas funciones -> Hecho
 - No es posible llamar a una función o procredimiento que no existe -> Hecho
+- No es posible modificar/acceder a variables de otros scopes
 
-- Es un lenguaje fuertemente tipado, las expresiones de distintos tipos no pueden mezclarse.
+- Es un lenguaje fuertemente tipado, las expresiones de distintos tipos no pueden mezclarse. -> Hecho
     - (Está implícito pero cualquier asignación que resuelva a un tipo indefinido es incorrecta)
     - Aplica también a las condiciones, dado que están formadas por expresiones
     - Es necesario resolver el tipo de las funciones para poder resolver correctamente el tipo de las expresiones (Hay que tener en cuenta que los procedimientos devuelven indefinido siempre)

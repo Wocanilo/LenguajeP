@@ -99,6 +99,18 @@ public class PSintBaseListener implements PSintListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterAcceso_secuencia(PSint.Acceso_secuenciaContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitAcceso_secuencia(PSint.Acceso_secuenciaContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterElementos_secuencia(PSint.Elementos_secuenciaContext ctx) { }
 	/**
 	 * {@inheritDoc}

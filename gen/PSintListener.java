@@ -77,6 +77,16 @@ public interface PSintListener extends ParseTreeListener {
 	 */
 	void exitExpr_booleana(PSint.Expr_booleanaContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link PSint#acceso_secuencia}.
+	 * @param ctx the parse tree
+	 */
+	void enterAcceso_secuencia(PSint.Acceso_secuenciaContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link PSint#acceso_secuencia}.
+	 * @param ctx the parse tree
+	 */
+	void exitAcceso_secuencia(PSint.Acceso_secuenciaContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link PSint#elementos_secuencia}.
 	 * @param ctx the parse tree
 	 */

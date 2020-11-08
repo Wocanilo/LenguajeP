@@ -3,21 +3,22 @@
 ## OBJETIVO 1
 Detectar variables redeclaradas.
 
-Una vez declaradas, las variables son de tipo inmutable
+Una vez declaradas, las variables son de tipo inmutable. Es decir, no es posible cambiar el tipo de una
+variable ya declarada.
             
 ### Ejemplo
 ```
 x,y:NUM
 x:LOG
-(Error)
+(ERROR: X redeclarada como LOG, antes declarada como NUM)
 ```
 ### Decisiones de diseño
 
 #### Decisión 1
-Para detectar redeclaraciones es necesario almacenar el identificador y el tipo de cada variable.
+Para detectar redeclaraciones, es necesario almacenar el identificador y el tipo de cada variable.
 Por ello, se necesita almacenar esta información al declarar las variables.
 
-Para este fin se creará un almacén de variables al que llamaremos **tipoVariables**
+Para este fin, se creará un almacén de variables al que llamaremos **tipoVariables**
 
 | identificador | tipo     |
 |---------------|----------|
@@ -76,14 +77,14 @@ devolver: DEV expr (COMA expr)*;
 instrucciones_funcion: INSTRUCCIONES (instruccion|devolver)*;
 
 def_func: FUNCION nombreFunc=IDENTIFICADOR INICIO_PARENTESIS ps=parametros? FIN_PARENTESIS DEV INICIO_PARENTESIS ps=parametros FIN_PARENTESIS vs=variables instrucciones_funcion FFUNCION; 
-{almacenar cada ps en tipoVariable[nombreFunc]} {almacenar vs en tipoVariable[nombreFunc]}
+{almacenar ps en tipoVariable[nombreFunc]} {almacenar vs en tipoVariable[nombreFunc]}
 def_proc: PROCEDIMIENTO nombreProc=IDENTIFICADOR INICIO_PARENTESIS ps=parametros? FIN_PARENTESIS vs=variables instrucciones FPROCEDIMIENTO;
-{almacenar cada ps en tipoVariable[nombreProc]} {almacenar vs en tipoVariable[nombreProc]}
+{almacenar ps en tipoVariable[nombreProc]} {almacenar vs en tipoVariable[nombreProc]}
 
 subprogramas: SUBPROGRAMAS (def_func | def_proc)*;
 
 (funcion declaraVariable(var, scope)
-si tipoVariables[scope] no existe entonces crear tipoVariables[scope] y almaenar la variable dentro
+si tipoVariables[scope] no existe entonces crear tipoVariables[scope] y almacenar la variable dentro
 sino 
     si var.ident existe en tipoVariables[scope] entonces
        si var.tipo es distinto al almacenado entonces ERROR
@@ -92,12 +93,12 @@ sino
 )
 ```
 
-ARGUMENTO DISEÑO 2: DECISIÓN DISEÑO 2=> Decision 1 (a)
+ARGUMENTO DISEÑO 1: DECISIÓN DISEÑO 2=> Decision 1
 
 ## Objetivo 2
 Detectar funciones o procedimientos redeclarados.
 
-Las funciones o procedimientos son inmutables. Una vez declaradas, no es posible declarar otra funcion 
+Las funciones o procedimientos son inmutables. Una vez declarados, no es posible declarar otra funcion 
 o procedimiento con el mismo identificador.
 
 ### Ejemplo
@@ -121,7 +122,7 @@ SUBPROGRAMAS
 ### Decisiones de diseño
 
 #### Decisión de diseño 1
-Para poder detectar redeclaraciones es necesario almacenar el identificador de cada una de las funciones o
+Para poder detectar redeclaraciones, es necesario almacenar el identificador de cada una de las funciones o
 procedimientos declarados.
 
 Por ello, usaremos un almacén de identificadores de funciones/proc.
@@ -131,6 +132,13 @@ Por ello, usaremos un almacén de identificadores de funciones/proc.
 | mayor         |
 | mult             |
 | mayor_que           |
+
+Además, dado que P predefine dos funciones: __vacia__ y __ultima_posicion__, el almacen de funciones/procedimientos contendrá ambas funciones desde su creación.
+
+| identificador |
+|---------------|
+| vacia         |
+| ultima_posicion|
 ##### Gramatica atribuida
 ```
 def_func: FUNCION ident=IDENTIFICADOR INICIO_PARENTESIS parametros? FIN_PARENTESIS DEV INICIO_PARENTESIS parametros FIN_PARENTESIS variables instrucciones_funcion FFUNCION;
@@ -144,46 +152,9 @@ def_proc: PROCEDIMIENTO IDENTIFICADOR INICIO_PARENTESIS parametros? FIN_PARENTES
 )
 
 ```
+
 ## Objetivo 3
-Comprobar que no se sobreescriban las funciones __vacia__ y __ultima_posicion__
-
-### Ejemplos
-```
-SUBPROGRAMAS
-    PROCEDIMIENTO vacia()
-    VARIABLES
-        j: NUM;
-    INSTRUCCIONES
-        j = 0;
-    FPROCEDIMIENTO
-(ERROR)
-```
-
-### Decisiones de diseño
-#### Decision 1
-A la hora de declarar funciones o procedimientos, debemos comprobar que no se utilizan las palabras reservadas
-**vacia** y **ultima_posicion**
-
-##### Gramatica atribuida
-
-```
-def_func: FUNCION ident=IDENTIFICADOR INICIO_PARENTESIS parametros? FIN_PARENTESIS DEV INICIO_PARENTESIS parametros FIN_PARENTESIS variables instrucciones_funcion FFUNCION;
-{declarafuncionProcedimiento(ident)}
-def_proc: PROCEDIMIENTO IDENTIFICADOR INICIO_PARENTESIS parametros? FIN_PARENTESIS variables instrucciones FPROCEDIMIENTO;
-{declarafuncionProcedimiento(ident)}
-
-(funcion declarafuncionProcedimiento(ident)
-    si ident igual a vacia o ultima_posicion entonces ERROR
-    sino
-        si ident en funcionesYProcedimientos entonces ERROR
-        sino almacenar ident en funcionesYProcedimientos
-)
-
-```
-Esta decision amplia la decision 1 del Objetivo 2.
-
-## Objetivo 4
-Comprobar que no se llama a un procedimiento o funcion que no existe
+Comprobar que no se llama a un procedimiento o funcion que no existe.
 
 ### Ejemplo
 
@@ -215,10 +186,9 @@ Dado que el objetivo 2 define un almacen de funciones y procedimientos, usaremos
 
 ```
 llamada_func_proc: ident=IDENTIFICADOR INICIO_PARENTESIS expr (COMA expr)* FIN_PARENTESIS; {si ident no existe en almacen entonces ERROR}
-
 ```
 
-## Objetivo 5
+## Objetivo 4
 Analizador semantico capaz de decidir si las expresiones de un programa en el lenguaje P estan bien tipadas.
 
 - Una expresión esta bien tipada cuando no mezcla expresiones con distinto tipo.
@@ -253,6 +223,14 @@ usaremos un almacen de tipos de funciones.
 | mayor        | entero      |
 | mayor_de             | booleano, entero      |
 
+Además, dado que P predefine dos funciones: __vacia__ y __ultima_posicion__, el almacen de tipos de funciones
+se creará con el siguiente estado:
+
+| identificador | tipo     |
+|---------------|----------|
+| vacia           | booleano    |
+| ultima_posicion | entero      |
+
 ##### Gramatica atribuida
 ```
 (parametro de salida e)
@@ -261,13 +239,15 @@ parametro: t=tipo ident=IDENTIFICADOR; {almacenar ident con tipo t en e}
 parametros: p=parametro (COMA p=parametro)*; {almacenar p en ps}
 
 def_func: FUNCION ident=IDENTIFICADOR INICIO_PARENTESIS parametros? FIN_PARENTESIS DEV INICIO_PARENTESIS ps=parametros FIN_PARENTESIS variables instrucciones_funcion FFUNCION;
-{almacenar cada ident con los tipos contenidos en ps en almacen tipos funciones}
+{almacenar cada parametro contenido en ps en almacen tiposFunciones}
 
 ```
 
 #### Decision 2
-Para poder decidir el tipado de las variables, es necesario conocer el contexto en el que se encuentra la expresion. 
+Para poder decidir el tipado de las variables, es necesario conocer el contexto en el que se encuentra la expresion, ya que dependiendo
+del contexto en el que se encuentren existirán unas variables u otras. 
 
+Por ello, guardaremos el scope actual para poder consultarlo al resolver una expresión.
 #####  Gramatica atribuida
 ```
 
@@ -280,17 +260,51 @@ instrucciones_programa: INSTRUCCIONES instruccion+; {establecer scopeActual a GL
 
 ```
 #### Decision 3
+El cálculo del tipo de una expresión se basa en las siguientes funciones
 
 ##### Gramatica atribuida
 ```
+
+(funcion calculaTipoOPAritmetica(operando1, operando2)
+    si operando1 o operando2 es no_tipo entonces no_tipo
+    sino entonces NUM
+)
+
+(funcion calculaTipoFuncion(ident)
+    si ident existe en tipoFunciones entonces
+        si tipoFunciones[ident] > 1 entonces devolver no_tipo
+        sino devolver tipo funcion
+    sino devolver no_tipo
+)
+
+(funcion calculaTipoVariable(ident)
+    si scope existe en tipoVariables entonces
+        si ident existe en tipoVariables[scope] entonces devolver tipo variable
+        sino devolver no_tipo
+    sino devolver no_tipo
+)
+
+(funcion calculaTipoAccesoSecuencia(ident)
+    si calculaTipoVariable(ident) es SEQ_LOG entonces devolver LOG
+    sino si calculaTipoVariable(ident) es SEQ_NUM entonces devolver NUM
+    sino devolver no_tipo
+)
+
+(funcion calculaTipoSecuencia(elementos)
+    si todos los elementos son de tipo X devolver SEQ(X)
+    sino devolver no_tipo
+)
+
+
 (parametro de salida tipo)
-expr_entera: expr_entera MAS expr_entera
-            | expr_entera MENOS expr_entera
-            | expr_entera POR expr_entera
-            | INICIO_PARENTESIS expr_entera FIN_PARENTESIS
-            | ident=IDENTIFICADOR {tipo=tipoVariables(ident)}
+expr_entera: expr1=expr_entera MAS expr2=expr_entera {tipo=calculaTipoOPAritmetica(expr1, expr2)}
+            | expr1=expr_entera MENOS expr2=expr_entera {tipo=calculaTipoOPAritmetica(expr1, expr2)}
+            | expr1=expr_entera POR expr2=expr_entera {tipo=calculaTipoOPAritmetica(expr1, expr2)}
+            | INICIO_PARENTESIS tipo=expr_entera FIN_PARENTESIS
+            | ident=IDENTIFICADOR {tipo=calculaTipoVariable(ident)}
             | ENTERO {tipo=entero)
-            | llamada_func_proc {obtenerTipoFuncionProc(llamada_func_proc)}
+            | acceso_secuencia {tipo=tipoAccesoSecuencia(acceso_secuencia)}
+            | llamada_func_proc {calculaTipoFuncion(llamada_func_proc)}
             ;
 
 (parametro de salida tipo)
@@ -301,15 +315,63 @@ expr_booleana: TRUE {tipo=booleano}
 (parametro de salida elementos)
 elementos_secuencia: elemento=(expr_entera|expr_booleana) (COMA elemento=(expr_entera|expr_booleana))*; {almacenar cada elemento en elementos}
 
+(parametro de salida tipo)
+acceso_secuencia: IDENTIFICADOR INICIO_CORCHETE expr=expr_entera FIN_CORCHETE; {calculaTipoAccesoSecuencia(expr)}
+
 (parámetro de salida tipo)
-expr_secuencia: INICIO_CORCHETE elementos=elementos_secuencia FIN_CORCHETE {tipo=tipoSecuencia(elementos)} 
-              | IDENTIFICADOR INICIO_CORCHETE expr_entera FIN_CORCHETE {tipo=tipoVariable(ident) si tipoVariable(ident) es SEQ sino no_tipo}
+expr_secuencia: INICIO_CORCHETE elementos=elementos_secuencia FIN_CORCHETE {tipo=calculaTipoSecuencia(elementos)} 
               | INICIO_CORCHETE FIN_CORCHETE {tipo=SEQ}
               ;
 
-// Definimos los tipos posibles de expresion
-expr: expr_entera
-    | expr_booleana
-    | expr_secuencia
+(parametro de salida tipo)
+expr: tipo=expr_entera
+    | tipo=expr_booleana
+    | tipo=expr_secuencia
     ;
+```
+## Objetivo 5
+Analizador semántico capaz de decidir si las asignaciones de un programa son validas.
+
+- Una asignación es válida si y solo si el tipo de las expresiones y de las variables coinciden.
+- Una asignación es válida si y solo si el número de variables es igual al número de expresiones
+- En cualquier otro caso la asignación es inválida
+### Ejemplo
+```
+PROGRAMA
+VARIABLES
+    i,max,min,x:NUM;
+SUBPROGRAMAS
+INSTRUCCIONES
+    x = 1 + 2; (OK)
+    x = T; (ERROR)
+    x,i = 1, 22; (OK)
+    x = 22, 1+2; (ERROR)
+
+```
+### Decisiones de diseño
+Una asignación está bien tipada si y solo si el tipo de las expresiones y las variables coinciden, y 
+el número de variables coincide con el número de expresiones.
+
+Debemos tener en cuenta el caso límite en el que la variable es una secuencia y la expresión una secuencia vacía.
+
+#### Decision 1
+
+```
+(parametro de salida tipo)
+expr: tipo=expr_entera
+    | tipo=expr_booleana
+    | tipo=expr_secuencia
+    ;
+
+asignacion: ident=IDENTIFICADOR (COMA ident=IDENTIFICADOR)* IGUAL tipo=expr (COMA tipo=expr)* PyC;
+{por cada pareja ident,expr calculaTipoAsignacion(ident, expr), si son impares ERROR}
+
+(funcion calculaTipoAsignacion(ident, expr)
+si calculaTipoVariable(ident) es no_tipo entonces devolver no_tipo
+sino
+    si calculaTipoVariable(ident) es igual a tipo expr devolver tipo
+    sino 
+        si calculaTipoVariable(ident) es igual a SEQ_NUM o SEQ_LOG y tipo expr es SEQ devolver tipo variable
+        devolver no_tipo
+)
 ```

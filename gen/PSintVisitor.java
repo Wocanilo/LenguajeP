@@ -52,6 +52,12 @@ public interface PSintVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitExpr_booleana(PSint.Expr_booleanaContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link PSint#acceso_secuencia}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitAcceso_secuencia(PSint.Acceso_secuenciaContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link PSint#elementos_secuencia}.
 	 * @param ctx the parse tree
 	 * @return the visitor result

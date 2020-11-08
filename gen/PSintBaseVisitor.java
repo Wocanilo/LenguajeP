@@ -65,6 +65,13 @@ public class PSintBaseVisitor<T> extends AbstractParseTreeVisitor<T> implements 
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
+	@Override public T visitAcceso_secuencia(PSint.Acceso_secuenciaContext ctx) { return visitChildren(ctx); }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
 	@Override public T visitElementos_secuencia(PSint.Elementos_secuenciaContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
