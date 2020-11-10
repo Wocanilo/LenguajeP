@@ -542,21 +542,57 @@ public class Anasem extends AnasintBaseVisitor<Object>{
         return tipoVariable;
     }
 
+    // Comprueba si es una expresion es funcion
+    private Boolean esFuncion(Anasint.ExprContext ctx){
+        if(ctx.expr_entera() != null && ctx.expr_entera().llamada_func_proc() != null) return true;
+        else return false;
+    }
+
     // asignacion: ident=IDENTIFICADOR (COMA ident=IDENTIFICADOR)* IGUAL tipo=expr (COMA tipo=expr)* PyC;
     // {por cada pareja ident,expr calculaTipoAsignacion(ident, expr), si son impares ERROR}
     @Override
     public Object visitAsignacion(Anasint.AsignacionContext ctx){
-        // Comprobamos que haya el mismo número de variables que de expresiones
-        // Si no hay el mismo numero no podemos comprobar el tipado
         List<TerminalNode> variablesAsignacion = ctx.getTokens(Anasint.IDENTIFICADOR);
         List<Anasint.ExprContext> expresionesAsignacion = ctx.expr();
-        //TODO: hay que tener en cuenta que algunas expresiones pueden ser funciones y devolver multiples parámetros
 
-        if(variablesAsignacion.size() != expresionesAsignacion.size()) System.out.println(String.format("ERROR: número incorrecto de elementos en la asignación '%s'", ctx.getText()));
-        else{
-            // Comprobamos el tipado de cada pareja de la asignacion
-            for(int i=0; i<expresionesAsignacion.size(); i++){
-                this.calculaTipoAsignacion(variablesAsignacion.get(i).getText(), expresionesAsignacion.get(i));
+        // Si hay varias variables y una sola expresion puede tratarse de una llamada a funcion
+        if(expresionesAsignacion.size() == 1 && (variablesAsignacion.size() > expresionesAsignacion.size()) ){
+            // Comprobamos que sea funcion
+            if(this.esFuncion(expresionesAsignacion.get(0))){
+                // Obtenemos la lista de tipos devueltos
+                String identificador = expresionesAsignacion.get(0).expr_entera().llamada_func_proc().getStart().getText(); // Identificador funcion
+
+                if(!this.tipoFunciones.containsKey(identificador)) return Anasint.NO_TIPO; // Se trata de un procedimiento o no existe, no tiene tipo
+                else{
+                    List<Integer> tiposFuncion = this.tipoFunciones.get(identificador);
+
+                    // Si no concide el numero de elementos devueltos por la funcion con el numero de identificadores -> ERROR
+                    if(variablesAsignacion.size() != tiposFuncion.size()) System.out.println(String.format("ERROR: Asignacion múltiple erronea, no coincide el número de variables con el número" +
+                            " de parámetros devueltos '%s'", ctx.getText()));
+                    else{
+                        // Coinciden en número, comprobamos si coinciden en tipo
+                        for(int i=0; i<tiposFuncion.size(); i++){
+                            Integer tipoVariable = this.calculaTipoVariable(variablesAsignacion.get(i).getText());
+                            Integer tipoFuncion = tiposFuncion.get(i);
+                            // No coinciden en tipo -> ERROR
+                            if(tipoVariable != tipoFuncion) System.out.println(String.format("ERROR: Los tipos de la asignación no coinciden. Se trató de asignar a la variable '%s' con tipo '%s' " +
+                                    "el valor de la funcion '%s' de tipo '%s'", variablesAsignacion.get(i).getText(), this.idToString(tipoVariable), identificador, this.idToString(tipoFuncion)));
+                        }
+                    }
+                }
+            }else{
+                // No es llamada a función -> ERROR
+                System.out.println(String.format("ERROR: Numero incorrecto de elementos en la asignación '%s'", ctx.getText()));
+            }
+        }else{
+            // Comprobamos que haya el mismo número de variables que de expresiones
+            // Si no hay el mismo numero no podemos comprobar el tipado
+            if(variablesAsignacion.size() != expresionesAsignacion.size()) System.out.println(String.format("ERROR: número incorrecto de elementos en la asignación '%s'", ctx.getText()));
+            else{
+                // Comprobamos el tipado de cada pareja de la asignacion
+                for(int i=0; i<expresionesAsignacion.size(); i++){
+                    this.calculaTipoAsignacion(variablesAsignacion.get(i).getText(), expresionesAsignacion.get(i));
+                }
             }
         }
         return null; // No queremos que se vuelvan a visitar sus hijos

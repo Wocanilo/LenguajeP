@@ -125,7 +125,7 @@ SUBPROGRAMAS
 Para poder detectar redeclaraciones, es necesario almacenar el identificador de cada una de las funciones o
 procedimientos declarados.
 
-Por ello, usaremos un almacén de identificadores de funciones/proc.
+Por ello, usaremos un almacén de identificadores de funciones/procedimientos.
 
 | identificador |
 |---------------|
@@ -364,7 +364,8 @@ expr: tipo=expr_entera
     ;
 
 asignacion: ident=IDENTIFICADOR (COMA ident=IDENTIFICADOR)* IGUAL tipo=expr (COMA tipo=expr)* PyC;
-{por cada pareja ident,expr calculaTipoAsignacion(ident, expr), si son impares ERROR}
+{por cada pareja ident,expr calculaTipoAsignacion(ident, expr), si son impares ERROR, si varios ident
+y una sola expr comprobar si es funcion y los tipos coinciden sino ERROR}
 
 (funcion calculaTipoAsignacion(ident, expr)
 si calculaTipoVariable(ident) es no_tipo entonces devolver no_tipo
