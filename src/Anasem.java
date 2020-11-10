@@ -30,9 +30,6 @@ public class Anasem extends AnasintBaseVisitor<Object>{
 
     // Funcion auxiliar que traduce los ID a String para los mensajes de error
     private String idToString(Integer id){
-        // Si es nulo es no_tipo
-        if(id == null) return "NO_TIPO";
-
         switch(id){
             case Anasint.NUM:
                 return "NUM";
@@ -44,6 +41,8 @@ public class Anasem extends AnasintBaseVisitor<Object>{
                 return "SEQ_NUM";
             case Anasint.SEQ:
                 return "SEQ";
+            case Anasint.NO_TIPO:
+                return "NO_TIPO";
             default:
                 return "DESCONOCIDO";
         }
@@ -308,9 +307,9 @@ public class Anasem extends AnasintBaseVisitor<Object>{
         Integer tipoPrimerOperando = (Integer) visit(operando1);
         Integer tipoSegundoOperando = (Integer) visit(operando2);
 
-        // Si alguno es nulo entonces la operacion es no_tipo
-        if(tipoPrimerOperando == null || tipoSegundoOperando == null || tipoPrimerOperando != Anasint.NUM || tipoSegundoOperando != Anasint.NUM) {
-            return null;
+        // Si alguno es no_tipo o no es de tipo entero entonces la operacion es no_tipo
+        if(tipoPrimerOperando == Anasint.NO_TIPO || tipoSegundoOperando == Anasint.NO_TIPO || tipoPrimerOperando != Anasint.NUM || tipoSegundoOperando != Anasint.NUM) {
+            return Anasint.NO_TIPO;
         }
         else {
             return Anasint.NUM;
@@ -324,12 +323,12 @@ public class Anasem extends AnasintBaseVisitor<Object>{
     //    sino devolver no_tipo
     // )
     private Integer calculaTipoFuncion(String identificador){
-        if(!this.tipoFunciones.containsKey(identificador)) return null; // Se trata de un procedimiento
+        if(!this.tipoFunciones.containsKey(identificador)) return Anasint.NO_TIPO; // Se trata de un procedimiento o no existe, no tiene tipo
         else{
             List<Integer> tiposFuncion = this.tipoFunciones.get(identificador);
 
             if(tiposFuncion.size() == 1) return tiposFuncion.get(0);
-            else return null; // No se pueden usar funciones que devuelvan varios valores en las expresiones
+            else return Anasint.NO_TIPO; // No se pueden usar funciones que devuelvan varios valores en las expresiones
         }
     }
 
@@ -348,7 +347,7 @@ public class Anasem extends AnasintBaseVisitor<Object>{
             if (!variablesScope.containsKey(identificador)) {
                 // Aviso de que la variable usada no existe en el contexto actual
                 System.out.println(String.format("ERROR: La variable '%s' no existe en el contexto actual '%s'", identificador, this.scopeActual));
-                return null;
+                return Anasint.NO_TIPO;
             } else {
                 Integer tipoIdent = variablesScope.get(identificador);
                 // Devolvemos el tipo de la variable.
@@ -356,7 +355,7 @@ public class Anasem extends AnasintBaseVisitor<Object>{
             }
         }else{
             // Si no existe el scope no tiene variables, por lo que es NO_TIPO
-            return null;
+            return Anasint.NO_TIPO;
         }
     }
 
@@ -369,13 +368,13 @@ public class Anasem extends AnasintBaseVisitor<Object>{
         // El tipo devuelto depende el tipo de la secuencia
         Integer tipoSecuencia = this.calculaTipoVariable(identificador);
 
-        if(tipoSecuencia != null){
+        if(tipoSecuencia != Anasint.NO_TIPO){
             if(tipoSecuencia == Anasint.SEQ_LOG) return Anasint.LOG;
             else if(tipoSecuencia == Anasint.SEQ_NUM) return Anasint.NUM;
-            else return null; // La variable usada no es una secuencia
+            else return Anasint.NO_TIPO; // La variable usada no es una secuencia
         }else{
             // La variable no existe
-            return null;
+            return Anasint.NO_TIPO;
         }
     }
 
@@ -409,16 +408,16 @@ public class Anasem extends AnasintBaseVisitor<Object>{
 
         if(elementosUnicos.size() > 1){
             // Hay mas de un tipo de elemento, es no_tipo
-            return null;
+            return Anasint.NO_TIPO;
         }else{
             // Es un solo tipo
             Integer tipoSecuencia = elementos.get(0);
 
-            if(tipoSecuencia == null) return null; // Si es no_tipo la secuencia es no_tipo
+            if(tipoSecuencia == Anasint.NO_TIPO) return Anasint.NO_TIPO; // Si es no_tipo la secuencia es no_tipo
             if(tipoSecuencia == Anasint.LOG) return Anasint.SEQ_LOG;
             else if(tipoSecuencia == Anasint.NUM) return Anasint.SEQ_NUM;
             else System.out.println(String.format("ERROR: Secuencia con tipo inválido. '%s'", this.idToString(tipoSecuencia)));
-            return null;
+            return Anasint.NO_TIPO;
         }
     }
 
@@ -475,7 +474,7 @@ public class Anasem extends AnasintBaseVisitor<Object>{
                     // Failsafe para debug
                     System.out.println(ctx.getStart().getText());
                     System.out.println("No implementado (visitExpr_entera)");
-                    return null;
+                    return Anasint.NO_TIPO;
             }
         }
         else if(ctx.expr_entera().size() == 1){
@@ -505,7 +504,7 @@ public class Anasem extends AnasintBaseVisitor<Object>{
         }
 
         // Expresion sin tipo, mensaje de error
-        if(tipo == null) System.out.println(String.format("ERROR: Expresion '%s' sin tipo", ctx.getText()));
+        if(tipo == Anasint.NO_TIPO) System.out.println(String.format("ERROR: Expresion '%s' sin tipo", ctx.getText()));
 
         return tipo;
     }
@@ -520,12 +519,12 @@ public class Anasem extends AnasintBaseVisitor<Object>{
         Integer tipoVariable = this.calculaTipoVariable(identificador);
         Integer tipoExpr = (Integer) visit(expr);
 
-        if(tipoVariable == null || tipoExpr == null){
+        if(tipoVariable == Anasint.NO_TIPO || tipoExpr == Anasint.NO_TIPO){
             // Alguno de los dos es no_tipo
             System.out.println(String.format("ERROR: Asignación indefinida. Se trató de asignar a la variable '%s' con tipo '%s' " +
                     "el valor de la expresión '%s' de tipo '%s'", identificador, this.idToString(tipoVariable), expr.getText(), this.idToString(tipoExpr)));
 
-            return null;
+            return Anasint.NO_TIPO;
         }else if(tipoVariable != tipoExpr){
             // Los tipos no coinciden
             if( (tipoVariable == Anasint.SEQ_LOG || tipoVariable == Anasint.SEQ_NUM) && tipoExpr == Anasint.SEQ){
@@ -536,7 +535,7 @@ public class Anasem extends AnasintBaseVisitor<Object>{
 
             System.out.println(String.format("ERROR: Los tipos de la asignación no coinciden. Se trató de asignar a la variable '%s' con tipo '%s' " +
                     "el valor de la expresión '%s' de tipo '%s'", identificador, this.idToString(tipoVariable), expr.getText(), this.idToString(tipoExpr)));
-            return null;
+            return Anasint.NO_TIPO;
         }
 
         // Los tipos coinciden

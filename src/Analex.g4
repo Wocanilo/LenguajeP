@@ -19,6 +19,7 @@ LOG: 'LOG';
 SEQ_NUM: 'SEQ(NUM)';
 SEQ_LOG: 'SEQ(LOG)';
 SEQ: 'SEQ'; // Palabra reservada usada para representar listas vacias
+NO_TIPO: 'NO_TIPO'; // Palabra reservada usada para representar la ausencia de tipo
 
 // Simbolos
 TRUE: 'T';
