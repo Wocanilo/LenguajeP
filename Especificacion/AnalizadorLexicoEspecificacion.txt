@@ -1,3 +1,4 @@
+// Saltar espacios en blanco, tabulaciones y saltos de linea
 BLANCO: ' ' -> skip
 TABULADOR: '\t' -> skip
 FIN_LINEA: '\r'?'\n' -> skip
@@ -64,7 +65,6 @@ FPROCEDIMIENTO: 'FPROCEDIMIENTO'
 PARATODO: 'PARATODO'
 EXISTE: 'EXISTE'
 
-// Esto va al final o se lia con las palabras clave
 ENTERO: ('-')?DIGITO+
 IDENTIFICADOR: LETRA(LETRA|DIGITO)*
 
