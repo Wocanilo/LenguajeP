@@ -1,5 +1,6 @@
-lexer grammar PLex;
+lexer grammar Analex;
 
+// Saltar espacios en blanco, tabulaciones y saltos de linea
 BLANCO: ' ' -> skip;
 TABULADOR: '\t' -> skip;
 FIN_LINEA: '\r'?'\n' -> skip;
@@ -66,7 +67,7 @@ FPROCEDIMIENTO: 'FPROCEDIMIENTO';
 PARATODO: 'PARATODO';
 EXISTE: 'EXISTE';
 
-// Esto va al final o se lia con las palabras clave
+// Esto va al final al colisionar con algunas palabras clave
 ENTERO: ('-')?DIGITO+;
 IDENTIFICADOR: LETRA(LETRA|DIGITO)*;
 

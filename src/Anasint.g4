@@ -1,7 +1,7 @@
-parser grammar PSint;
+parser grammar Anasint;
 
 options{
-    tokenVocab=PLex;
+    tokenVocab=Analex;
 }
 
 programa: PROGRAMA variables subprogramas instrucciones_programa EOF;

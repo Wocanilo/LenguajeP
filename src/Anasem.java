@@ -4,7 +4,7 @@ import util.Variable;
 import java.lang.reflect.Array;
 import java.util.*;
 
-public class PSem extends PSintBaseVisitor<Object>{
+public class Anasem extends AnasintBaseVisitor<Object>{
     // Almacena el tipo de cada variable
     private final HashMap<String, HashMap<String, Integer>> tipoVariables = new HashMap<>();
     private final List<String> funcionesYProcedimientos = new ArrayList<>();
@@ -12,17 +12,17 @@ public class PSem extends PSintBaseVisitor<Object>{
     // Funciones predefinidas
 
     // Definimos las funciones predefinidas
-    public PSem(){
+    public Anasem(){
         // Declaramos las funciones predefinidas
         funcionesYProcedimientos.add("vacia");
         funcionesYProcedimientos.add("ultima_posicion");
         // Añadimos el tipo de las funciones predefinidas
         List<Integer> tipoVacia = new ArrayList<>();
-        tipoVacia.add(PSint.LOG);
+        tipoVacia.add(Anasint.LOG);
         tipoFunciones.put("vacia", tipoVacia);
 
         List<Integer> tipoUltimaPosicion = new ArrayList<>();
-        tipoUltimaPosicion.add(PSint.NUM);
+        tipoUltimaPosicion.add(Anasint.NUM);
         tipoFunciones.put("ultima_posicion", tipoUltimaPosicion);
     }
 
@@ -34,15 +34,15 @@ public class PSem extends PSintBaseVisitor<Object>{
         if(id == null) return "NO_TIPO";
 
         switch(id){
-            case PSint.NUM:
+            case Anasint.NUM:
                 return "NUM";
-            case PSint.LOG:
+            case Anasint.LOG:
                 return "LOG";
-            case PSint.SEQ_LOG:
+            case Anasint.SEQ_LOG:
                 return "SEQ_LOG";
-            case PSint.SEQ_NUM:
+            case Anasint.SEQ_NUM:
                 return "SEQ_NUM";
-            case PSint.SEQ:
+            case Anasint.SEQ:
                 return "SEQ";
             default:
                 return "DESCONOCIDO";
@@ -92,20 +92,20 @@ public class PSem extends PSintBaseVisitor<Object>{
     //    | SEQ_LOG {t=secuencia_booleana}
     //    ;
     @Override
-    public Object visitTipo(PSint.TipoContext ctx){
+    public Object visitTipo(Anasint.TipoContext ctx){
         // Devuelve un Integer que identifica al lexema.
-        // PSint.X permite obtener el valor numérico asignado a cada tipo. Ej: PSint.NUM, PSint.LOG...
+        // Anasint.X permite obtener el valor numérico asignado a cada tipo. Ej: Anasint.NUM, Anasint.LOG...
         return ctx.getStart().getType();
     }
 
     // (parámetro de salida d)
     // decl_var: ident=IDENTIFICADOR (COMA ident=IDENTIFICADOR)* PyP t=tipo {almacenar cada ident con tipo t en d};
     @Override
-    public Object visitDecl_var(PSint.Decl_varContext ctx){
+    public Object visitDecl_var(Anasint.Decl_varContext ctx){
         List<Variable> variables = new ArrayList<>();
         Integer tipo = (Integer)visit(ctx.tipo());
 
-        for(TerminalNode variable: ctx.getTokens(PSint.IDENTIFICADOR)){
+        for(TerminalNode variable: ctx.getTokens(Anasint.IDENTIFICADOR)){
            variables.add(new Variable(variable.getText(), tipo));
         }
 
@@ -115,10 +115,10 @@ public class PSem extends PSintBaseVisitor<Object>{
     // (parámetro de salida vs)
     // variables: VARIABLES d=(decl_var PyC)* {almacenar cada d en vs} ;
     @Override
-    public Object visitVariables(PSint.VariablesContext ctx){
+    public Object visitVariables(Anasint.VariablesContext ctx){
         List<List<Variable>> variables = new ArrayList<>();
 
-        for(PSint.Decl_varContext decl_var: ctx.decl_var()){
+        for(Anasint.Decl_varContext decl_var: ctx.decl_var()){
             variables.add((List<Variable>) visit(decl_var));
         }
 
@@ -127,7 +127,7 @@ public class PSem extends PSintBaseVisitor<Object>{
 
     // programa: PROGRAMA vs=variables subprogramas instrucciones EOF {almacenar vs en tipoVariable[GLOBAL]};
     @Override
-    public Object visitPrograma(PSint.ProgramaContext ctx){
+    public Object visitPrograma(Anasint.ProgramaContext ctx){
         List<List<Variable>> variables = (List<List<Variable>>) visit(ctx.variables());
 
         // Almacenamos las variables en el scope global
@@ -144,7 +144,7 @@ public class PSem extends PSintBaseVisitor<Object>{
     // (parámetro de salida p)
     // parametro: t=tipo ident=IDENTIFICADOR {almacenar ident con tipo t en p};
     @Override
-    public Object visitParametro(PSint.ParametroContext ctx){
+    public Object visitParametro(Anasint.ParametroContext ctx){
         String identificador = ctx.getStop().getText();
         Integer tipo = (Integer)visit(ctx.tipo());
 
@@ -154,11 +154,11 @@ public class PSem extends PSintBaseVisitor<Object>{
     // (parámetro de salida ps)
     // parametros: p=parametro (COMA p=parametro)* {almacenar cada p en ps};
     @Override
-    public Object visitParametros(PSint.ParametrosContext ctx){
+    public Object visitParametros(Anasint.ParametrosContext ctx){
         List<Variable> parametros = new ArrayList<>();
 
 
-        for(PSint.ParametroContext parametro: ctx.parametro()){
+        for(Anasint.ParametroContext parametro: ctx.parametro()){
             // Visitamos cada elemento parámetro para formar la lista
             parametros.add( (Variable)visit(parametro) );
         }
@@ -180,8 +180,8 @@ public class PSem extends PSintBaseVisitor<Object>{
     // def_func: FUNCION ident=IDENTIFICADOR INICIO_PARENTESIS parametros? FIN_PARENTESIS DEV INICIO_PARENTESIS ps=parametros FIN_PARENTESIS variables instrucciones_funcion FFUNCION;
     //{almacenar cada ident con los tipos contenidos en ps en almacen tipos funciones}
     @Override
-    public Object visitDef_func(PSint.Def_funcContext ctx){
-        String nombreFuncion = ctx.getToken(PSint.IDENTIFICADOR, 0).getText(); // El nombre es el unico identificador que hay en una declaracion de funcion
+    public Object visitDef_func(Anasint.Def_funcContext ctx){
+        String nombreFuncion = ctx.getToken(Anasint.IDENTIFICADOR, 0).getText(); // El nombre es el unico identificador que hay en una declaracion de funcion
         // Almacenamos el scope actual
         this.scopeActual = nombreFuncion;
 
@@ -238,8 +238,8 @@ public class PSem extends PSintBaseVisitor<Object>{
     // def_proc: PROCEDIMIENTO ident=IDENTIFICADOR INICIO_PARENTESIS parametros? FIN_PARENTESIS variables instrucciones_procedimiento FPROCEDIMIENTO;
     //{establecer scopeActual con el valor de ident}
     @Override
-    public Object visitDef_proc(PSint.Def_procContext ctx){
-        String nombreProc = ctx.getToken(PSint.IDENTIFICADOR, 0).getText(); // El nombre es el unico identificador que hay en una declaracion de procedimiento
+    public Object visitDef_proc(Anasint.Def_procContext ctx){
+        String nombreProc = ctx.getToken(Anasint.IDENTIFICADOR, 0).getText(); // El nombre es el unico identificador que hay en una declaracion de procedimiento
 
         // Almacenamos el scope actual
         this.scopeActual = nombreProc;
@@ -269,7 +269,7 @@ public class PSem extends PSintBaseVisitor<Object>{
 
     // llamada_func_proc: ident=IDENTIFICADOR INICIO_PARENTESIS expr (COMA expr)* FIN_PARENTESIS; {si ident no existe en almacen entonces ERROR}
     @Override
-    public Object visitLlamada_func_proc(PSint.Llamada_func_procContext ctx){
+    public Object visitLlamada_func_proc(Anasint.Llamada_func_procContext ctx){
         // Comprobamos si la funcion/proc existe
         String nombreFuncionProc = ctx.getStart().getText();
 
@@ -284,7 +284,7 @@ public class PSem extends PSintBaseVisitor<Object>{
     // Objetivo 7:
     // instrucciones_programa: INSTRUCCIONES instruccion+; {establecer scopeActual a GLOBAL}
     @Override
-    public Object visitInstrucciones_programa(PSint.Instrucciones_programaContext ctx){
+    public Object visitInstrucciones_programa(Anasint.Instrucciones_programaContext ctx){
         this.scopeActual = "GLOBAL";
 
         return super.visitInstrucciones_programa(ctx);
@@ -295,25 +295,25 @@ public class PSem extends PSintBaseVisitor<Object>{
     //           | FALSE {tipo=booleano}
     //  ;
     @Override
-    public Integer visitExpr_booleana(PSint.Expr_booleanaContext ctx){
-        return PSint.LOG;
+    public Integer visitExpr_booleana(Anasint.Expr_booleanaContext ctx){
+        return Anasint.LOG;
     }
 
     // (funcion calculaTipoOPAritmetica(operando1, operando2)
     //    si operando1 o operando2 es no_tipo entonces no_tipo
     //    sino entonces NUM
     // )
-    private Integer calculaTipoOPAritmetica(PSint.Expr_enteraContext operando1, PSint.Expr_enteraContext operando2){
+    private Integer calculaTipoOPAritmetica(Anasint.Expr_enteraContext operando1, Anasint.Expr_enteraContext operando2){
         // Se trata de una suma, una multiplicacion o una resta, visitamos cada operando
         Integer tipoPrimerOperando = (Integer) visit(operando1);
         Integer tipoSegundoOperando = (Integer) visit(operando2);
 
         // Si alguno es nulo entonces la operacion es no_tipo
-        if(tipoPrimerOperando == null || tipoSegundoOperando == null || tipoPrimerOperando != PSint.NUM || tipoSegundoOperando != PSint.NUM) {
+        if(tipoPrimerOperando == null || tipoSegundoOperando == null || tipoPrimerOperando != Anasint.NUM || tipoSegundoOperando != Anasint.NUM) {
             return null;
         }
         else {
-            return PSint.NUM;
+            return Anasint.NUM;
         }
     }
 
@@ -370,8 +370,8 @@ public class PSem extends PSintBaseVisitor<Object>{
         Integer tipoSecuencia = this.calculaTipoVariable(identificador);
 
         if(tipoSecuencia != null){
-            if(tipoSecuencia == PSint.SEQ_LOG) return PSint.LOG;
-            else if(tipoSecuencia == PSint.SEQ_NUM) return PSint.NUM;
+            if(tipoSecuencia == Anasint.SEQ_LOG) return Anasint.LOG;
+            else if(tipoSecuencia == Anasint.SEQ_NUM) return Anasint.NUM;
             else return null; // La variable usada no es una secuencia
         }else{
             // La variable no existe
@@ -380,18 +380,18 @@ public class PSem extends PSintBaseVisitor<Object>{
     }
 
     @Override
-    public List<Integer> visitElementos_secuencia(PSint.Elementos_secuenciaContext ctx){
+    public List<Integer> visitElementos_secuencia(Anasint.Elementos_secuenciaContext ctx){
         List<Integer> elementos = new ArrayList<>();
 
         // Calculamos el tipo de cada uno de los elementos de la lista
         if(ctx.expr_booleana() != null){
-            for(PSint.Expr_booleanaContext expr_booleana: ctx.expr_booleana()){
+            for(Anasint.Expr_booleanaContext expr_booleana: ctx.expr_booleana()){
                 elementos.add((Integer)visit(expr_booleana));
             }
         }
 
         if(ctx.expr_entera() != null){
-            for(PSint.Expr_enteraContext expr_entera: ctx.expr_entera()){
+            for(Anasint.Expr_enteraContext expr_entera: ctx.expr_entera()){
                 elementos.add((Integer)visit(expr_entera));
             }
         }
@@ -413,8 +413,10 @@ public class PSem extends PSintBaseVisitor<Object>{
         }else{
             // Es un solo tipo
             Integer tipoSecuencia = elementos.get(0);
-            if(tipoSecuencia == PSint.LOG) return PSint.SEQ_LOG;
-            else if(tipoSecuencia == PSint.NUM) return PSint.SEQ_NUM;
+
+            if(tipoSecuencia == null) return null; // Si es no_tipo la secuencia es no_tipo
+            if(tipoSecuencia == Anasint.LOG) return Anasint.SEQ_LOG;
+            else if(tipoSecuencia == Anasint.NUM) return Anasint.SEQ_NUM;
             else System.out.println(String.format("ERROR: Secuencia con tipo inválido. '%s'", this.idToString(tipoSecuencia)));
             return null;
         }
@@ -425,13 +427,13 @@ public class PSem extends PSintBaseVisitor<Object>{
     //              | INICIO_CORCHETE FIN_CORCHETE {tipo=SEQ}
     //              ;
     @Override
-    public Integer visitExpr_secuencia(PSint.Expr_secuenciaContext ctx) {
+    public Integer visitExpr_secuencia(Anasint.Expr_secuenciaContext ctx) {
         if (ctx.elementos_secuencia() != null) {
             List<Integer> elementos = (List<Integer>) visit(ctx.elementos_secuencia());
             return this.calculaTipoSecuencia(elementos);
         }else{
             // Lista vacia
-            return PSint.SEQ;
+            return Anasint.SEQ;
         }
     }
 
@@ -446,13 +448,13 @@ public class PSem extends PSintBaseVisitor<Object>{
     //            | llamada_func_proc {calculaTipoFuncion(llamada_func_proc)}
     //            ;
     @Override
-    public Integer visitExpr_entera(PSint.Expr_enteraContext ctx){
+    public Integer visitExpr_entera(Anasint.Expr_enteraContext ctx){
         // Casos base
         if(ctx.expr_entera().isEmpty()){
             switch(ctx.getStart().getType()){
-                case PSint.ENTERO:
-                    return PSint.NUM;
-                case PSint.IDENTIFICADOR:
+                case Anasint.ENTERO:
+                    return Anasint.NUM;
+                case Anasint.IDENTIFICADOR:
                     String identificador = ctx.getStart().getText();
                     // Importante recordar que esta rama tambien se visita en las expresiones booleanas
                     if(ctx.llamada_func_proc() != null) {
@@ -491,7 +493,7 @@ public class PSem extends PSintBaseVisitor<Object>{
     //    | tipo=expr_secuencia
     //    ;
     @Override
-    public Integer visitExpr(PSint.ExprContext ctx){
+    public Integer visitExpr(Anasint.ExprContext ctx){
         // Devolvemos el tipo de la expresion
         Integer tipo;
         if(ctx.expr_entera() != null){
@@ -514,7 +516,7 @@ public class PSem extends PSintBaseVisitor<Object>{
     //    si calculaTipoVariable(ident) es igual a tipo expr devolver tipo
     //    sino devolver no_tipo
     // )
-    private Integer calculaTipoAsignacion(String identificador, PSint.ExprContext expr){
+    private Integer calculaTipoAsignacion(String identificador, Anasint.ExprContext expr){
         Integer tipoVariable = this.calculaTipoVariable(identificador);
         Integer tipoExpr = (Integer) visit(expr);
 
@@ -526,7 +528,7 @@ public class PSem extends PSintBaseVisitor<Object>{
             return null;
         }else if(tipoVariable != tipoExpr){
             // Los tipos no coinciden
-            if( (tipoVariable == PSint.SEQ_LOG || tipoVariable == PSint.SEQ_NUM) && tipoExpr == PSint.SEQ){
+            if( (tipoVariable == Anasint.SEQ_LOG || tipoVariable == Anasint.SEQ_NUM) && tipoExpr == Anasint.SEQ){
                 // Se trata de la asignación de una lista vacía a una secuencia, es válido
                 // El tipo de la asignación es igual al tipo de la variable
                 return tipoVariable;
@@ -544,11 +546,11 @@ public class PSem extends PSintBaseVisitor<Object>{
     // asignacion: ident=IDENTIFICADOR (COMA ident=IDENTIFICADOR)* IGUAL tipo=expr (COMA tipo=expr)* PyC;
     // {por cada pareja ident,expr calculaTipoAsignacion(ident, expr), si son impares ERROR}
     @Override
-    public Object visitAsignacion(PSint.AsignacionContext ctx){
+    public Object visitAsignacion(Anasint.AsignacionContext ctx){
         // Comprobamos que haya el mismo número de variables que de expresiones
         // Si no hay el mismo numero no podemos comprobar el tipado
-        List<TerminalNode> variablesAsignacion = ctx.getTokens(PSint.IDENTIFICADOR);
-        List<PSint.ExprContext> expresionesAsignacion = ctx.expr();
+        List<TerminalNode> variablesAsignacion = ctx.getTokens(Anasint.IDENTIFICADOR);
+        List<Anasint.ExprContext> expresionesAsignacion = ctx.expr();
         //TODO: hay que tener en cuenta que algunas expresiones pueden ser funciones y devolver multiples parámetros
 
         if(variablesAsignacion.size() != expresionesAsignacion.size()) System.out.println(String.format("ERROR: número incorrecto de elementos en la asignación '%s'", ctx.getText()));

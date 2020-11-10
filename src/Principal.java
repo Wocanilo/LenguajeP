@@ -3,16 +3,16 @@ import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
-import org.antlr.v4.runtime.tree.ParseTreeWalker;
+
 import javax.swing.*;
 import java.util.Arrays;
 
 public class Principal {
     public static void main(String[] args) throws Exception{
         CharStream input = CharStreams.fromFileName(args[0]);
-        PLex analex = new PLex(input);
+        Analex analex = new Analex(input);
         CommonTokenStream tokens = new CommonTokenStream(analex);
-        PSint anasint = new PSint(tokens);
+        Anasint anasint = new Anasint(tokens);
         ParseTree tree = anasint.programa();
 
         JFrame frame = new JFrame("Árbol de Análisis");
@@ -26,8 +26,8 @@ public class Principal {
         frame.setSize(500,400);
         frame.setVisible(true);
         // Analizador semantico al ataque
-        PSem psem = new PSem();
-        psem.visit(tree);
+        Anasem anasem = new Anasem();
+        anasem.visit(tree);
 
     }
 }
