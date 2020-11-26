@@ -1,7 +1,6 @@
 import org.antlr.v4.runtime.tree.TerminalNode;
 import util.Variable;
 
-import java.lang.reflect.Array;
 import java.util.*;
 
 public class Anasem extends AnasintBaseVisitor<Object>{
@@ -9,7 +8,6 @@ public class Anasem extends AnasintBaseVisitor<Object>{
     private final HashMap<String, HashMap<String, Integer>> tipoVariables = new HashMap<>();
     private final List<String> funcionesYProcedimientos = new ArrayList<>();
     private final HashMap<String, List<Integer>> tipoFunciones = new HashMap<>();
-    // Funciones predefinidas
 
     // Definimos las funciones predefinidas
     public Anasem(){
@@ -155,7 +153,6 @@ public class Anasem extends AnasintBaseVisitor<Object>{
     @Override
     public Object visitParametros(Anasint.ParametrosContext ctx){
         List<Variable> parametros = new ArrayList<>();
-
 
         for(Anasint.ParametroContext parametro: ctx.parametro()){
             // Visitamos cada elemento parámetro para formar la lista
@@ -402,7 +399,6 @@ public class Anasem extends AnasintBaseVisitor<Object>{
     //    si todos los elementos son de tipo X devolver SEQ(X)
     //    sino devolver no_tipo
     //)
-
     private Integer calculaTipoSecuencia(List<Integer> elementos){
         Set<Integer> elementosUnicos = new HashSet<>(elementos);
 

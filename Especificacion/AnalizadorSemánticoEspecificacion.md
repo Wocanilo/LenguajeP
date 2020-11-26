@@ -239,13 +239,13 @@ parametro: t=tipo ident=IDENTIFICADOR; {almacenar ident con tipo t en e}
 parametros: p=parametro (COMA p=parametro)*; {almacenar p en ps}
 
 def_func: FUNCION ident=IDENTIFICADOR INICIO_PARENTESIS parametros? FIN_PARENTESIS DEV INICIO_PARENTESIS ps=parametros FIN_PARENTESIS variables instrucciones_funcion FFUNCION;
-{almacenar cada parametro contenido en ps en almacen tiposFunciones}
+{almacenar cada parametro con identificador ident contenido en ps en almacen tiposFunciones}
 
 ```
 
 #### Decision 2
 Para poder decidir el tipado de las variables, es necesario conocer el contexto en el que se encuentra la expresion, ya que dependiendo
-del contexto en el que se encuentren existirán unas variables u otras. 
+del contexto en el que se encuentre existirán unas variables u otras. 
 
 Por ello, guardaremos el scope actual para poder consultarlo al resolver una expresión.
 #####  Gramatica atribuida
@@ -266,7 +266,7 @@ El cálculo del tipo de una expresión se basa en las siguientes funciones
 ```
 
 (funcion calculaTipoOPAritmetica(operando1, operando2)
-    si operando1 o operando2 es no_tipo entonces no_tipo
+    si (operando1 o operando2 es no_tipo) o (openrando1 o operando2 no son NUM) entonces no_tipo
     sino entonces NUM
 )
 
@@ -373,6 +373,6 @@ sino
     si calculaTipoVariable(ident) es igual a tipo expr devolver tipo
     sino 
         si calculaTipoVariable(ident) es igual a SEQ_NUM o SEQ_LOG y tipo expr es SEQ devolver tipo variable
-        devolver no_tipo
+        sino devolver no_tipo
 )
 ```

@@ -17,6 +17,7 @@ LOG: 'LOG'
 SEQ_NUM: 'SEQ(NUM)'
 SEQ_LOG: 'SEQ(LOG)'
 SEQ: 'SEQ'
+NO_TIPO: 'NO_TIPO'
 
 // Simbolos
 TRUE: 'T'
