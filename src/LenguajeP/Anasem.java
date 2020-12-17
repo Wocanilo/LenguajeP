@@ -1,9 +1,13 @@
+package LenguajeP;
+
+import LenguajeP.Antlr.Anasint;
+import LenguajeP.Antlr.AnasintBaseVisitor;
 import org.antlr.v4.runtime.tree.TerminalNode;
-import util.Variable;
+import LenguajeP.util.Variable;
 
 import java.util.*;
 
-public class Anasem extends AnasintBaseVisitor<Object>{
+public class Anasem extends AnasintBaseVisitor<Object> {
     // Almacena el tipo de cada variable
     private final HashMap<String, HashMap<String, Integer>> tipoVariables = new HashMap<>();
     private final List<String> funcionesYProcedimientos = new ArrayList<>();
@@ -14,6 +18,7 @@ public class Anasem extends AnasintBaseVisitor<Object>{
         // Declaramos las funciones predefinidas
         funcionesYProcedimientos.add("vacia");
         funcionesYProcedimientos.add("ultima_posicion");
+        funcionesYProcedimientos.add("mostrar");
         // Añadimos el tipo de las funciones predefinidas
         List<Integer> tipoVacia = new ArrayList<>();
         tipoVacia.add(Anasint.LOG);
@@ -192,7 +197,7 @@ public class Anasem extends AnasintBaseVisitor<Object>{
         }else{
             // Solo hay de salida
             parametrosEntrada = new ArrayList<>();
-            parametrosSalida = (List<Variable>)visit(ctx.parametros(0)); // El segundo conjunto de parámetros de una función son los de salida
+            parametrosSalida = (List<Variable>)visit(ctx.parametros(0));
         }
 
         List<List<Variable>> variablesSeccion = (List<List<Variable>>)visit(ctx.variables()); // Debemos procesar la sección de variables de la función
@@ -538,7 +543,7 @@ public class Anasem extends AnasintBaseVisitor<Object>{
         return tipoVariable;
     }
 
-    // Comprueba si es una expresion es funcion
+    // Comprueba si una expresion es funcion
     private Boolean esFuncion(Anasint.ExprContext ctx){
         if(ctx.expr_entera() != null && ctx.expr_entera().llamada_func_proc() != null) return true;
         else return false;

@@ -1,3 +1,7 @@
+package LenguajeP;
+
+import LenguajeP.Antlr.Analex;
+import LenguajeP.Antlr.Anasint;
 import org.antlr.v4.gui.TreeViewer;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
@@ -28,6 +32,10 @@ public class Principal {
         // Analizador semantico al ataque
         Anasem anasem = new Anasem();
         anasem.visit(tree);
+
+        // Interprete
+        Interprete interp = new Interprete();
+        interp.visit(tree);
 
     }
 }

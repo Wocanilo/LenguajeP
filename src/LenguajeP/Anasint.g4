@@ -85,10 +85,10 @@ instrucciones_programa: INSTRUCCIONES instruccion+; // Los programas con 0 instr
 parametro: tipo IDENTIFICADOR;
 parametros: parametro (COMA parametro)*;
 devolver: DEV expr (COMA expr)*;
-instrucciones_funcion: INSTRUCCIONES instruccion+; // Las funciones sin instrucciones no son correctas
+instrucciones_funcion: INSTRUCCIONES (instruccion|devolver)+; // Las funciones sin instrucciones no son correctas
 instrucciones_procedimiento: INSTRUCCIONES (instruccion|devolver)+; // Las funciones sin instrucciones no son correctas
 
-def_func: FUNCION IDENTIFICADOR INICIO_PARENTESIS parametros? FIN_PARENTESIS DEV INICIO_PARENTESIS parametros FIN_PARENTESIS variables instrucciones_funcion devolver FFUNCION;
+def_func: FUNCION IDENTIFICADOR INICIO_PARENTESIS parametros? FIN_PARENTESIS DEV INICIO_PARENTESIS parametros FIN_PARENTESIS variables instrucciones_funcion FFUNCION;
 def_proc: PROCEDIMIENTO IDENTIFICADOR INICIO_PARENTESIS parametros? FIN_PARENTESIS variables instrucciones_procedimiento FPROCEDIMIENTO;
 
 // La seccion de subprogramas esta formado por 0 o varias declaraciones de funciones y/o procedimientos
