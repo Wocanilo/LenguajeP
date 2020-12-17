@@ -77,7 +77,7 @@ condicional: SI INICIO_PARENTESIS condicion_completa FIN_PARENTESIS ENTONCES ins
 ruptura: RUPTURA PyC;
 iteracion: MIENTRAS INICIO_PARENTESIS condicion_completa FIN_PARENTESIS HACER (instruccion|ruptura)+ FMIENTRAS;
 
-instruccion: (asignacion|condicional|iteracion);
+instruccion: (asignacion|condicional|iteracion|(llamada_func_proc PyC));
 
 instrucciones_programa: INSTRUCCIONES instruccion+; // Los programas con 0 instrucciones no son correctos
 
