@@ -119,6 +119,16 @@ public class ExprParser extends AnasintBaseVisitor<Object> {
         else return Boolean.TRUE;
     }
 
+    // (parametro de salida valor)
+    // expr_elementosSecuencia: valor=expr_entera
+    //                       | valor=expr_booleana
+    //                       ;
+    @Override
+    public Object visitExpr_elementosSecuencia(Anasint.Expr_elementosSecuenciaContext ctx){
+        if(ctx.expr_booleana() != null) return visit(ctx.expr_booleana());
+        else return visit(ctx.expr_entera());
+    }
+
     // (parametro de salida elementos)
     // elementos_secuencia: elemento=expr_elementosSecuencia (COMA elemento=expr_elementosSecuencia)*; {Almacena cada elemento en elementos}
     @Override
@@ -130,5 +140,44 @@ public class ExprParser extends AnasintBaseVisitor<Object> {
         }
 
         return elementos;
+    }
+
+    // (parametro de salida secuencia)
+    // expr_secuencia: INICIO_CORCHETE elementos_secuencia FIN_CORCHETE {secuencia=elementos_secuencia}
+    //              | INICIO_CORCHETE FIN_CORCHETE {secuencia=[]}
+    //              ;
+    @Override
+    public Object visitExpr_secuencia(Anasint.Expr_secuenciaContext ctx){
+        if(ctx.elementos_secuencia() == null) return new ArrayList<Object>();
+        else{
+            return visit(ctx.elementos_secuencia());
+        }
+    }
+
+    // acceso_secuencia: ident=IDENTIFICADOR INICIO_CORCHETE elemento=expr_entera FIN_CORCHETE; {obtiene
+    //    la secuencia del almacen de variables y devuelve la posicion valor}
+    @Override
+    public Object visitAcceso_secuencia(Anasint.Acceso_secuenciaContext ctx){
+        String identificador = ctx.getToken(Anasint.IDENTIFICADOR, 0).getText();
+        // Obtenemos la variable
+        Variable var = this.getVariable(identificador);
+
+        if(var.getTipo() == Anasint.SEQ_LOG || var.getTipo() == Anasint.SEQ_NUM){
+            // Obtenemos el indice
+            Integer indice = (Integer) visit(ctx.expr_entera());
+            List<Object> secuencia = (List<Object>) var.getValor();
+
+            // Comprobamos que exista indice
+            if(indice < secuencia.size()){
+                return secuencia.get(indice);
+            }else{
+                throw new RuntimeException(String.format("Runtime Error: Index '%s' out of bounds for variable '%s'",
+                        indice, identificador));
+            }
+        }else{
+            // No es una secuencia
+            throw new RuntimeException(String.format("Runtime Error: variable '%s' is not a sequence.",
+                    identificador));
+        }
     }
 }

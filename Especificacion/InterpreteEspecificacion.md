@@ -139,8 +139,8 @@ variables: VARIABLES d=(decl_var PyC)* {almacenar cada d en almacen de variables
 #### Decision 2
 Interpretar un programa es interpretar secuencialmente sus instrucciones.
 
-##### Interpretar(asignacion)
-Actualizar el almacen de variables con el nuevo valor de la variable 
+##### Interpretar(expresiones)
+Calcular el valor de las expresiones del programa.
 
 ###### Gramatica atribuida
 
@@ -177,7 +177,6 @@ expr_elementosSecuencia: valor=expr_entera
 
 (parametro de salida elementos)
 elementos_secuencia: elemento=expr_elementosSecuencia (COMA elemento=expr_elementosSecuencia)*; {Almacena cada elemento en elementos}
-
 
 (parametro de salida secuencia)
 expr_secuencia: INICIO_CORCHETE elementos_secuencia FIN_CORCHETE {secuencia=elementos_secuencia}

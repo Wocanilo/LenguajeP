@@ -35,6 +35,8 @@ public class Variable {
     }
 
     public Object getValor() {
+        if(this.valor == null) throw new RuntimeException(String.format("Runtime error: tried to access variable '%s' with null value.",
+                this.getIdentificador()));
         return valor;
     }
 
@@ -62,7 +64,7 @@ public class Variable {
             }
             else throwError = true;
         }
-        else if(this.getTipo() == Anasint.SEQ_LOG && !List.class.isInstance(valor)) {
+        else if(this.getTipo() == Anasint.SEQ_LOG) {
             if(List.class.isInstance(valor)){
                 // Comprobamos que el tipo de cada elemento de la lista sea valido
                 for(Object elemento: (List<Object>) valor){
