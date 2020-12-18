@@ -43,7 +43,7 @@ public class Variable {
         this.tipo = tipo;
     }
 
-    public void setValor(Object Valor) {
+    public void setValor(Object valor) {
         this.valor = valor;
     }
 

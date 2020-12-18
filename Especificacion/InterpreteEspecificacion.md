@@ -110,7 +110,7 @@ Las instrucciones son:
     
 ## Decisiones de diseño
 
-### Decisión 1 - Variables
+### Decisión 1
 Para poder ejecutar un programa en P, es necesario conocer qué variables existen, de qué tipo son y qué valor tienen.
 
 Para este fin, se creará un almacén de variables, que contendrá el estado de cada variable declarada.
@@ -134,5 +134,48 @@ tipo: NUM {t=entero}
     ;
 
 variables: VARIABLES d=(decl_var PyC)* {almacenar cada d en almacen de variables} ;
+```
+
+#### Decision 2
+Interpretar un programa es interpretar secuencialmente sus instrucciones.
+
+##### Interpretar(asignacion)
+Actualizar el almacen de variables con el nuevo valor de la variable 
+
+###### Gramatica atribuida
+
+```
+(parametro de salida valor)
+expr_entera: expr1=expr_entera MAS expr2=expr_entera {valor=suma(expr1, expr2)}
+            | expr1=expr_entera MENOS expr2=expr_entera {valor=resta(expr1, expr2)}
+            | expr1=expr_entera POR expr2=expr_entera {valor=multiplica(expr1, expr2)}
+            | INICIO_PARENTESIS valor=expr_entera FIN_PARENTESIS
+            | ident=IDENTIFICADOR {valor=getValorVariable(ident)}
+            | ENTERO {valor=entero)
+            | acceso_secuencia {valor=acceso_secuencia}
+            | llamada_func_proc {valor=ejecutaFuncion(llamada_func_proc)}
+            ;
+
+acceso_secuencia: ident=IDENTIFICADOR INICIO_CORCHETE elemento=expr_entera FIN_CORCHETE; {obtiene
+    la secuencia del almacen de variables y devuelve la posicion valor} 
+
+(funcion getVariable(ident){
+    Si ident in almacenVariables entonces
+        devolver valor variable
+    sino ERROR variable no declarada
+)
+
+(parametro de salida valor)
+expr_booleana: TRUE {valor=true}
+             | FALSE {valor=false}
+             ;
+
+(parametro de salida elementos)
+elementos_secuencia: (valor=expr_entera|expr_booleana) (COMA (valor=expr_entera|expr_booleana))*; {Almacena todos los valores en elementos}
+
+(parametro de salida secuencia)
+expr_secuencia: INICIO_CORCHETE elementos_secuencia FIN_CORCHETE {secuencia=elementos_secuencia}
+              | INICIO_CORCHETE FIN_CORCHETE {secuencia=[]}
+              ;
 ```
 

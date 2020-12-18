@@ -385,16 +385,8 @@ public class Anasem extends AnasintBaseVisitor<Object> {
         List<Integer> elementos = new ArrayList<>();
 
         // Calculamos el tipo de cada uno de los elementos de la lista
-        if(ctx.expr_booleana() != null){
-            for(Anasint.Expr_booleanaContext expr_booleana: ctx.expr_booleana()){
-                elementos.add((Integer)visit(expr_booleana));
-            }
-        }
-
-        if(ctx.expr_entera() != null){
-            for(Anasint.Expr_enteraContext expr_entera: ctx.expr_entera()){
-                elementos.add((Integer)visit(expr_entera));
-            }
+        for(Anasint.Expr_elementosSecuenciaContext elemento: ctx.expr_elementosSecuencia()){
+            elementos.add((Integer)visit(elemento));
         }
 
         return elementos;
@@ -460,7 +452,6 @@ public class Anasem extends AnasintBaseVisitor<Object> {
                     if(ctx.llamada_func_proc() != null) {
                         // Debemos seguir visitando la llamada.
                         visit(ctx.llamada_func_proc());
-
                         return this.calculaTipoFuncion(identificador);
 
                     }else if(ctx.acceso_secuencia() != null){

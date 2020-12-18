@@ -2,6 +2,7 @@ package LenguajeP;
 
 import LenguajeP.Antlr.Anasint;
 import LenguajeP.Antlr.AnasintBaseVisitor;
+import LenguajeP.util.InstruccionesParser;
 import LenguajeP.util.VariablesParser;
 import LenguajeP.util.Variable;
 
@@ -16,6 +17,9 @@ public class Interprete extends AnasintBaseVisitor<Object> {
         // Creamos el almacen de variables
         VariablesParser almacen = new VariablesParser();
         this.almacenVariables = (HashMap<String, Variable>) almacen.visit(ctx.variables());
+
+        InstruccionesParser instrucciones = new InstruccionesParser(this.almacenVariables);
+        instrucciones.visit(ctx.instrucciones_programa());
 
         return null;
     }
