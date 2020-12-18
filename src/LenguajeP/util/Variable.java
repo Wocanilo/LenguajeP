@@ -1,5 +1,8 @@
 package LenguajeP.util;
 
+import LenguajeP.Antlr.Anasint;
+
+import java.util.List;
 import java.util.Objects;
 
 public class Variable {
@@ -44,6 +47,37 @@ public class Variable {
     }
 
     public void setValor(Object valor) {
+        boolean throwError = false;
+        if(this.getTipo() == Anasint.NUM && !Integer.class.isInstance(valor)) throwError = true;
+        else if(this.getTipo() == Anasint.LOG && !Boolean.class.isInstance(valor)) throwError = true;
+        else if(this.getTipo() == Anasint.SEQ_NUM) {
+            if(List.class.isInstance(valor)){
+                // Comprobamos que el tipo de cada elemento de la lista sea valido
+                for(Object elemento: (List<Object>) valor){
+                    if(Boolean.class.isInstance(elemento)){
+                        throwError = true;
+                        break;
+                    }
+                }
+            }
+            else throwError = true;
+        }
+        else if(this.getTipo() == Anasint.SEQ_LOG && !List.class.isInstance(valor)) {
+            if(List.class.isInstance(valor)){
+                // Comprobamos que el tipo de cada elemento de la lista sea valido
+                for(Object elemento: (List<Object>) valor){
+                    if(Integer.class.isInstance(elemento)){
+                        throwError = true;
+                        break;
+                    }
+                }
+            }
+            else throwError = true;
+        }
+
+        if(throwError) throw new RuntimeException(String.format("Runtime Error: variable '%s' has been assigned a value '%s' with invalid type. ",
+                this.getIdentificador(), valor));
+
         this.valor = valor;
     }
 

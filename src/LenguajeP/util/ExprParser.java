@@ -115,10 +115,12 @@ public class ExprParser extends AnasintBaseVisitor<Object> {
     //             ;
     @Override
     public Object visitExpr_booleana(Anasint.Expr_booleanaContext ctx){
-        if(ctx.FALSE() != null) return false;
-        else return true;
+        if(ctx.FALSE() != null) return Boolean.FALSE;
+        else return Boolean.TRUE;
     }
 
+    // (parametro de salida elementos)
+    // elementos_secuencia: elemento=expr_elementosSecuencia (COMA elemento=expr_elementosSecuencia)*; {Almacena cada elemento en elementos}
     @Override
     public Object visitElementos_secuencia(Anasint.Elementos_secuenciaContext ctx){
         List<Object> elementos = new ArrayList<>();
@@ -126,8 +128,7 @@ public class ExprParser extends AnasintBaseVisitor<Object> {
         for(Anasint.Expr_elementosSecuenciaContext elemento: ctx.expr_elementosSecuencia()){
             elementos.add(visit(elemento));
         }
-        System.out.println(elementos);
 
-        return null;
+        return elementos;
     }
 }

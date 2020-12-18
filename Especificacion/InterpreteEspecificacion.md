@@ -170,8 +170,14 @@ expr_booleana: TRUE {valor=true}
              | FALSE {valor=false}
              ;
 
+(parametro de salida valor)
+expr_elementosSecuencia: valor=expr_entera
+                       | valor=expr_booleana
+                       ;
+
 (parametro de salida elementos)
-elementos_secuencia: (valor=expr_entera|expr_booleana) (COMA (valor=expr_entera|expr_booleana))*; {Almacena todos los valores en elementos}
+elementos_secuencia: elemento=expr_elementosSecuencia (COMA elemento=expr_elementosSecuencia)*; {Almacena cada elemento en elementos}
+
 
 (parametro de salida secuencia)
 expr_secuencia: INICIO_CORCHETE elementos_secuencia FIN_CORCHETE {secuencia=elementos_secuencia}

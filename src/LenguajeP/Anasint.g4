@@ -40,7 +40,7 @@ acceso_secuencia: IDENTIFICADOR INICIO_CORCHETE expr_entera FIN_CORCHETE; // Acc
 
 // Tipo especial de expr usada en los elementos de una secuencia para asegurar el parseo secuencial
 expr_elementosSecuencia: expr_entera
-                       |expr_booleana
+                       | expr_booleana
                        ;
 
 elementos_secuencia: expr_elementosSecuencia (COMA expr_elementosSecuencia)*; // De forma implicita permite la llamada a funciones
