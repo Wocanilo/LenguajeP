@@ -90,12 +90,13 @@ instrucciones_programa: INSTRUCCIONES instruccion+; // Los programas con 0 instr
 // Seccion de subprogramas. Se ha separado la definicion de parametros para facilitar su parseo
 parametro: tipo IDENTIFICADOR;
 parametros: parametro (COMA parametro)*;
-devolver: DEV expr (COMA expr)*;
-instrucciones_funcion: INSTRUCCIONES (instruccion|devolver)+; // Las funciones sin instrucciones no son correctas
-instrucciones_procedimiento: INSTRUCCIONES (instruccion|devolver)+; // Las funciones sin instrucciones no son correctas
+devolver: DEV expr (COMA expr)* PyC;
 
-def_func: FUNCION IDENTIFICADOR INICIO_PARENTESIS parametros? FIN_PARENTESIS DEV INICIO_PARENTESIS parametros FIN_PARENTESIS variables instrucciones_funcion FFUNCION;
-def_proc: PROCEDIMIENTO IDENTIFICADOR INICIO_PARENTESIS parametros? FIN_PARENTESIS variables instrucciones_procedimiento FPROCEDIMIENTO;
+instrucciones_funcion:(asignacion|condicional|iteracion|(llamada_func_proc PyC)|devolver); // Las funciones sin instrucciones no son correctas
+instrucciones_procedimiento: (asignacion|condicional|iteracion|(llamada_func_proc PyC)); // Los procedimintos sin instrucciones no son correctas
+
+def_func: FUNCION IDENTIFICADOR INICIO_PARENTESIS parametros? FIN_PARENTESIS DEV INICIO_PARENTESIS parametros FIN_PARENTESIS variables INSTRUCCIONES instrucciones_funcion+ FFUNCION;
+def_proc: PROCEDIMIENTO IDENTIFICADOR INICIO_PARENTESIS parametros? FIN_PARENTESIS variables INSTRUCCIONES instrucciones_procedimiento+ FPROCEDIMIENTO;
 
 // La seccion de subprogramas esta formado por 0 o varias declaraciones de funciones y/o procedimientos
 subprogramas: SUBPROGRAMAS (def_func | def_proc)*;

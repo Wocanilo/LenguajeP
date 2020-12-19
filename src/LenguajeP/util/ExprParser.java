@@ -9,9 +9,11 @@ import java.util.List;
 
 public class ExprParser extends AnasintBaseVisitor<Object> {
     private HashMap<String, Variable> almacenVariables;
+    List<Subprograma> subprogramas;
 
-    public ExprParser(HashMap<String, Variable> almacenVariables){
+    public ExprParser(HashMap<String, Variable> almacenVariables, List<Subprograma> subprogramas){
         this.almacenVariables = almacenVariables;
+        this.subprogramas = subprogramas;
     }
 
     //(funcion getVariable(ident){
@@ -26,7 +28,6 @@ public class ExprParser extends AnasintBaseVisitor<Object> {
     }
 
     private Integer calculaOPAritmetica(Anasint.Expr_enteraContext ctx){
-        // Se trata de una operacion aritmetica
         Object operadorIzq = visit(ctx.expr_entera(0));
         Object operadorDer = visit(ctx.expr_entera(1));
 
@@ -178,6 +179,65 @@ public class ExprParser extends AnasintBaseVisitor<Object> {
             // No es una secuencia
             throw new RuntimeException(String.format("Runtime Error: variable '%s' is not a sequence.",
                     identificador));
+        }
+    }
+
+    @Override
+    public Object visitLlamada_func_proc(Anasint.Llamada_func_procContext ctx){
+        String identificador = ctx.getToken(Anasint.IDENTIFICADOR, 0).getText();
+        Subprograma subprograma = null;
+
+        // Comprobamos que exista la funcion/procedimiento a llamar
+        for(Subprograma sub: this.subprogramas){
+            if(sub.getIdentificador().equalsIgnoreCase(identificador)) subprograma = sub;
+        }
+
+        // El subprograma no existe
+        if(subprograma == null) throw new RuntimeException(String.format("Runtime error: function/procedure %s not declared", identificador));
+
+        // Formamos el almacen de variables locales
+        HashMap<String, Variable> variablesLocales = new HashMap<>();
+        variablesLocales.putAll(subprograma.getVariablesLocales()); // Variables locales declaradas en la seccion VARIABLES
+
+        Object resultado;
+
+        if(ctx.expr() == null){
+            // No hay parametros de entrada, ejecutamos directamente la funcion/procedimiento
+            resultado = subprograma.Execute(variablesLocales);
+        }else{
+            // Debemos resolver las expresiones pasads como parametros
+            List<Anasint.ExprContext> expresiones = ctx.expr();
+            List<Parametro> parametrosEntrada = subprograma.getParametrosEntrada();
+
+            // Comprobamos que el numero de expresiones coincide
+            // TODO: podria contener una llamada a funcion?
+            if(expresiones.size() != parametrosEntrada.size()) throw new RuntimeException(String.format("Runtime Error: function/procedure call to '%s' with invalid number of parameters '%s'",
+                    identificador, expresiones.size()));
+
+            for(int i = 0; i<expresiones.size(); i++){
+                Object exprValue = visit(expresiones.get(i));
+                Parametro param = parametrosEntrada.get(i);
+
+                // Si la variable ya existe ERROR
+                if(variablesLocales.containsKey(param.getIdentificador())) throw new RuntimeException(String.format("Runtime Error: function/procedure parameter name collision with local variables '%s'",
+                        param.getIdentificador()));
+
+                variablesLocales.put(param.getIdentificador(), new Variable(param.getIdentificador(), param.getTipo(), exprValue));
+            }
+
+            //TODO: hay que tener en cuenta si los parametros son de lectura y escritura o no
+
+            // Ejecutamos la funcion/procedimiento
+            resultado = subprograma.Execute(variablesLocales);
+        }
+
+        // Si era un procedimiento, modificamos los parametros de entrada en el scope global
+        if(!subprograma.isEsFuncion()){
+            this.almacenVariables.putAll((HashMap<String, Variable>) resultado);
+            return null;
+        }else{
+            // Si era una funcion, devolvemos los valores indicados por dev
+            return (List<Object>) resultado;
         }
     }
 }

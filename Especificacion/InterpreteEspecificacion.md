@@ -34,7 +34,7 @@ La declaración de variables consta de dos partes:
 - Tipo de las variables a declarar
 
 Ejemplo:
-```p
+```
 a,b,c,d,e:NUM;
 f,g:SEQ(NUM);
 ```
@@ -123,64 +123,126 @@ Para este fin, se creará un almacén de variables, que contendrá el estado de 
 | g             | secuencia_booleana |T,T,F,F|
 
 #### Gramática atribuida
-```
+```antlrv4
 programa: PROGRAMA variables subprogramas instrucciones EOF;
 
-(parámetro de salida t)
-tipo: NUM {t=entero}
-    | LOG {t=booleano}
-    | SEQ_NUM {t=secuencia_entera}
-    | SEQ_LOG {t=secuencia_booleana}
+// (parámetro de salida t)
+tipo: NUM // {t=entero}
+    | LOG // {t=booleano}
+    | SEQ_NUM // {t=secuencia_entera}
+    | SEQ_LOG // {t=secuencia_booleana}
     ;
 
-variables: VARIABLES d=(decl_var PyC)* {almacenar cada d en almacen de variables} ;
+variables: VARIABLES d=(decl_var PyC)* // {almacenar cada d en almacen de variables} ;
 ```
+##### Decision 2
+Para interpretar un programa, es necesario calcular el valor de sus expresiones.
 
-#### Decision 2
-Interpretar un programa es interpretar secuencialmente sus instrucciones.
-
-##### Interpretar(expresiones)
-Calcular el valor de las expresiones del programa.
+Las expresiones se calculan de manera recursiva.
 
 ###### Gramatica atribuida
 
-```
-(parametro de salida valor)
-expr_entera: expr1=expr_entera MAS expr2=expr_entera {valor=suma(expr1, expr2)}
-            | expr1=expr_entera MENOS expr2=expr_entera {valor=resta(expr1, expr2)}
-            | expr1=expr_entera POR expr2=expr_entera {valor=multiplica(expr1, expr2)}
+```antlrv4
+// (parametro de salida valor)
+expr_entera: expr1=expr_entera MAS expr2=expr_entera // {valor=suma(expr1, expr2)}
+            | expr1=expr_entera MENOS expr2=expr_entera // {valor=resta(expr1, expr2)}
+            | expr1=expr_entera POR expr2=expr_entera // {valor=multiplica(expr1, expr2)}
             | INICIO_PARENTESIS valor=expr_entera FIN_PARENTESIS
-            | ident=IDENTIFICADOR {valor=getValorVariable(ident)}
-            | ENTERO {valor=entero)
-            | acceso_secuencia {valor=acceso_secuencia}
-            | llamada_func_proc {valor=ejecutaFuncion(llamada_func_proc)}
+            | ident=IDENTIFICADOR // {valor=getValorVariable(ident)}
+            | ENTERO // {valor=entero)
+            | acceso_secuencia // {valor=acceso_secuencia}
+            | llamada_func_proc // {valor=ejecutaFuncion(llamada_func_proc)}
             ;
 
-acceso_secuencia: ident=IDENTIFICADOR INICIO_CORCHETE elemento=expr_entera FIN_CORCHETE; {obtiene
-    la secuencia del almacen de variables y devuelve la posicion valor} 
+acceso_secuencia: ident=IDENTIFICADOR INICIO_CORCHETE elemento=expr_entera FIN_CORCHETE; // {obtiene
+    // la secuencia del almacen de variables y devuelve la posicion valor} 
 
-(funcion getVariable(ident){
-    Si ident in almacenVariables entonces
-        devolver valor variable
-    sino ERROR variable no declarada
-)
-
-(parametro de salida valor)
+// (parametro de salida valor)
 expr_booleana: TRUE {valor=true}
              | FALSE {valor=false}
              ;
 
-(parametro de salida valor)
+// (parametro de salida valor)
 expr_elementosSecuencia: valor=expr_entera
                        | valor=expr_booleana
                        ;
 
-(parametro de salida elementos)
-elementos_secuencia: elemento=expr_elementosSecuencia (COMA elemento=expr_elementosSecuencia)*; {Almacena cada elemento en elementos}
+// (parametro de salida elementos)
+elementos_secuencia: elemento=expr_elementosSecuencia (COMA elemento=expr_elementosSecuencia)*; // {Almacena cada elemento en elementos}
 
-(parametro de salida secuencia)
-expr_secuencia: INICIO_CORCHETE elementos_secuencia FIN_CORCHETE {secuencia=elementos_secuencia}
-              | INICIO_CORCHETE FIN_CORCHETE {secuencia=[]}
+// (parametro de salida secuencia)
+expr_secuencia: INICIO_CORCHETE elementos_secuencia FIN_CORCHETE // {secuencia=elementos_secuencia}
+              | INICIO_CORCHETE FIN_CORCHETE // {secuencia=[]}
               ;
+
+// Se utilizan las siguientes funciones:
+
+// (funcion getVariable(ident){
+//    Si ident in almacenVariables entonces
+//        devolver valor variable
+//    sino ERROR variable no declarada
+// )
 ```
+
+##### Decision 3
+Para interpretar un programa, es necesario conocer que funciones y procedimientos existen, asi como conocer sus parametros
+de entrada/salida.
+
+Por ello, definimos un almacen de funciones/procedimientos que contiene cada una de las funciones y procedimientos del programa.
+
+| Identificador | Entrada                 | Salida                  | Variables locales            | Instrucciones |
+|---------------|-------------------------|-------------------------|------------------------------|---------------|
+| mayor         | [Parametro("a", "NUM")] | [Parametro("d", "LOG")] | [Variable("b", "NUM", null)] | d = T;        |
+| vacio         | [Parametro("d", "LOG")] | null                    | [Variable("c", "NUM", null)] | d = F;        |
+
+A la hora de llamar a una funcion, la informacion almacenada permitira su ejecucion.
+
+###### Gramatica atribuida
+
+```antlrv4
+// (parametro devuelto param)
+parametro: t=tipo ident=IDENTIFICADOR // {almacenar indent con tipo t en param};
+// (parametro devuelto parametros)
+parametros: parametro (COMA parametro)* // {almacenar todos los param en parametros};
+
+// (parametro de salida subprograma)
+def_func: FUNCION ident=IDENTIFICADOR INICIO_PARENTESIS entrada=parametros? FIN_PARENTESIS DEV INICIO_PARENTESIS salida=parametros FIN_PARENTESIS vars=variables INSTRUCCIONES instr=instrucciones_funcion+ FFUNCION;
+// {devolver Subprograma(ident, entrada, salida, vars, instr)}
+
+// (parametro de salida subprograma)
+def_proc: PROCEDIMIENTO ident=IDENTIFICADOR INICIO_PARENTESIS entrada=parametros? FIN_PARENTESIS vars=variables INSTRUCCIONES instr=instrucciones_procedimiento+ FPROCEDIMIENTO;
+// {devolver Subprograma(ident, entrada, vars, instr)}
+```
+
+#### Decision 4
+Interpretar un programa es interpretar secuencialmente sus instrucciones.
+
+##### Interpretar(asignaciones)
+La instruccion de asignacion actualiza el valor de las variables contenidas en el almacen de variables con el valor de una expresion.
+
+Esta asignacion puede ser simple, cuando se trata de una sola variable, o multiple, cuando se trata de varias.
+
+**Ejemplo de evaluacion**
+(*Solo se muestran los cambios al almacen*)
+```
+VARIABLES
+a,b,c,d,e:NUM; -> Almacen: {"a": Variable("a", "NUM", null), "b": Variable("b", "NUM", null), "c": Variable("c", "NUM", null),
+"d": Variable("d", "NUM", null), "e": Variable("e", "NUM", null)}
+INSTRUCCIONES
+a = 1; -> Almacen: {"a": Variable("a", "NUM", 1)}
+b = a + 2; -> Almacen: {"a": Variable("a", "NUM", 3)}
+c = mayor([1,2]); -> Almacen: {"c": Variable("c", "NUM", 2)}
+d,e = coordenadas(); -> Almacen: {"d": Variable("d", "NUM", 37), "e": Variable("e", "NUM", -5)}
+``` 
+
+Es importante tener en cuenta que cuando se trata de una funcion, esta puede devolver varios valores. Estos valores
+se asignan a las variables en orden de retorno.
+
+###### Gramatica atribuida
+```antlrv4
+asignacion: ident=IDENTIFICADOR (COMA ident=IDENTIFICADOR)* IGUAL exp=expr (COMA exp=expr)* PyC;
+// {para cada ident actualizar su valor en el almacen con su exp pareja}
+// {Si solo hay una expr y es funcion, almacenar cada resultado en su variable pareja}
+```
+
 

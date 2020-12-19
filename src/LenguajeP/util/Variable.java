@@ -23,7 +23,7 @@ public class Variable {
     public Variable(String identificador, Integer tipo, Object valor){
         this.identificador = identificador;
         this.tipo = tipo;
-        this.valor = valor;
+        this.setValor(valor);
     }
 
     public String getIdentificador() {

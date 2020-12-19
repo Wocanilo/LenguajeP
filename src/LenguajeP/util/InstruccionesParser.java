@@ -17,9 +17,9 @@ public class InstruccionesParser extends AnasintBaseVisitor<Object> {
     private HashMap<String, Variable> almacenVariables;
     private ExprParser exprParser;
 
-    public InstruccionesParser(HashMap<String, Variable> almacenVariables){
+    public InstruccionesParser(HashMap<String, Variable> almacenVariables, List<Subprograma> subprogramas){
         this.almacenVariables = almacenVariables;
-        this.exprParser = new ExprParser(this.almacenVariables);
+        this.exprParser = new ExprParser(this.almacenVariables, subprogramas);
     }
 
     // Comprueba si una expresion es funcion
@@ -60,9 +60,19 @@ public class InstruccionesParser extends AnasintBaseVisitor<Object> {
             // No es necesario volver a almacenarlo ya que se trata de una referencia
             variable.setValor(valoresExpresiones.get(i));
         }
-        System.out.println(this.almacenVariables);
 
         return ctx;
+    }
+
+    @Override
+    public Object visitDevolver(Anasint.DevolverContext ctx){
+        List<Object> res = new ArrayList<>();
+
+        for(Anasint.ExprContext expr: ctx.expr()){
+            res.add(this.exprParser.visit(expr));
+        }
+
+        return res;
     }
 
 
