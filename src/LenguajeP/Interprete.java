@@ -10,7 +10,7 @@ import java.util.List;
 public class Interprete extends AnasintBaseVisitor<Object> {
     private HashMap<String, Variable> almacenVariables;
 
-    //TODO: reflejar cambios de Anasint en el analizador semantico
+    //TODO: reflejar cambios de Anasint en el analizador semantico y en su especificacion
     @Override
     public Object visitPrograma(Anasint.ProgramaContext ctx){
 
@@ -21,8 +21,7 @@ public class Interprete extends AnasintBaseVisitor<Object> {
         // Creamos el almacen de funciones y procedimientos
         SubprogramaParser subprogramasParser = new SubprogramaParser();
         List<Subprograma> subprogramas = (List<Subprograma>) subprogramasParser.visit(ctx.subprogramas());
-
-        System.out.println(subprogramas);
+        subprogramas.add(new Mostrar());
 
         // Procesamos las instrucciones del programa
         InstruccionesParser instruccionesParser = new InstruccionesParser(this.almacenVariables, subprogramas);

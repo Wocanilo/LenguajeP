@@ -9,7 +9,7 @@ import java.util.List;
 
 public class ExprParser extends AnasintBaseVisitor<Object> {
     private HashMap<String, Variable> almacenVariables;
-    List<Subprograma> subprogramas;
+    private List<Subprograma> subprogramas;
 
     public ExprParser(HashMap<String, Variable> almacenVariables, List<Subprograma> subprogramas){
         this.almacenVariables = almacenVariables;
@@ -200,6 +200,8 @@ public class ExprParser extends AnasintBaseVisitor<Object> {
         variablesLocales.putAll(subprograma.getVariablesLocales()); // Variables locales declaradas en la seccion VARIABLES
 
         Object resultado;
+        // Para los procedimientos, debemos poder traducir entre la variable de salida y la orignal
+        HashMap<Variable, Variable> salidaOriginal = new HashMap<>();
 
         if(ctx.expr() == null){
             // No hay parametros de entrada, ejecutamos directamente la funcion/procedimiento
@@ -214,15 +216,34 @@ public class ExprParser extends AnasintBaseVisitor<Object> {
             if(expresiones.size() != parametrosEntrada.size()) throw new RuntimeException(String.format("Runtime Error: function/procedure call to '%s' with invalid number of parameters '%s'",
                     identificador, expresiones.size()));
 
+
             for(int i = 0; i<expresiones.size(); i++){
-                Object exprValue = visit(expresiones.get(i));
+                Object expr = visit(expresiones.get(i));
+                Object exprValue;
+                // TODO: permitir anidar llamadas a funciones, ahora mismo no se desempaqueta la lista devuelta por la funcion.
+
+                // Hay que desencapsular las variables
+                if(Variable.class.isInstance(expr)){
+                    exprValue = ((Variable)expr).getValor();
+                }else{
+                    exprValue = expr;
+                }
+
                 Parametro param = parametrosEntrada.get(i);
 
                 // Si la variable ya existe ERROR
                 if(variablesLocales.containsKey(param.getIdentificador())) throw new RuntimeException(String.format("Runtime Error: function/procedure parameter name collision with local variables '%s'",
                         param.getIdentificador()));
 
-                variablesLocales.put(param.getIdentificador(), new Variable(param.getIdentificador(), param.getTipo(), exprValue));
+                // Creamos la variable de entrada local
+                Variable variableLocal = new Variable(param.getIdentificador(), param.getTipo(), exprValue);
+
+                if(Variable.class.isInstance(expr)) {
+                    // Como se ha desencapsulado, hay que guardar la referencia a la original para poder cambiar su valor al terminar
+                    salidaOriginal.put(variableLocal, (Variable) expr);
+                }
+
+                variablesLocales.put(param.getIdentificador(), variableLocal);
             }
 
             //TODO: hay que tener en cuenta si los parametros son de lectura y escritura o no
@@ -233,7 +254,15 @@ public class ExprParser extends AnasintBaseVisitor<Object> {
 
         // Si era un procedimiento, modificamos los parametros de entrada en el scope global
         if(!subprograma.isEsFuncion()){
-            this.almacenVariables.putAll((HashMap<String, Variable>) resultado);
+            // Tan solo se modifican las variables que hayan sido traducidas, el resto no existen en el scope global.
+            // Pueden no existir porque se paso como parametro un entero, por ejemplo. Por tanto, son descartadas.
+            for(Variable var: ((HashMap<String, Variable>) resultado).values()){
+                if(salidaOriginal.containsKey(var)){
+                    // Modificamos el valor de la variable original
+                    Variable original = salidaOriginal.get(var);
+                    original.setValor(var.getValor());
+                }
+            }
             return null;
         }else{
             // Si era una funcion, devolvemos los valores indicados por dev

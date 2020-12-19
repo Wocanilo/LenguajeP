@@ -8,15 +8,17 @@ import java.util.List;
 import java.util.Objects;
 
 public class Subprograma {
-    private String identificador;
-    private List<Parametro> parametrosEntrada;
-    private List<Parametro> parametrosSalida;
+    protected String identificador;
+    protected List<Parametro> parametrosEntrada;
+    protected List<Parametro> parametrosSalida;
 
-    HashMap<String, Variable> almacenVariables;
-    Object instruccionesSubprograma;
+    protected HashMap<String, Variable> almacenVariables;
+    protected Object instruccionesSubprograma;
 
     // Indica si es funcion o procedimiento
-    private boolean esFuncion;
+    protected boolean esFuncion;
+
+    public Subprograma(){};
 
     public Subprograma(String identificador, List<Parametro> parametrosEntrada, List<Parametro> parametrosSalida,
                        HashMap<String, Variable> almacenVariables, List<Anasint.Instrucciones_funcionContext> instruccionesSubprograma){

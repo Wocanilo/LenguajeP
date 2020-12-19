@@ -40,14 +40,6 @@ public class Variable {
         return valor;
     }
 
-    public void setIdentificador(String identificador) {
-        this.identificador = identificador;
-    }
-
-    public void setTipo(Integer tipo) {
-        this.tipo = tipo;
-    }
-
     public void setValor(Object valor) {
         boolean throwError = false;
         if(this.getTipo() == Anasint.NUM && !Integer.class.isInstance(valor)) throwError = true;

@@ -122,6 +122,39 @@ Para este fin, se creará un almacén de variables, que contendrá el estado de 
 | e             | secuencia_entera   |1,2,3,4|
 | g             | secuencia_booleana |T,T,F,F|
 
+Estas variables seran representadas mediante una clase *Variable* que se encargara de asegurar su correcto tipado
+en tiempo de ejecucion. Asi como de evitar el acceso a variables sin valor definido.
+
+```java
+public class Variable {
+    /*
+    * Clase que implementa una variable genérica
+    */
+    private String identificador;
+    private Integer tipo;
+    private Object valor;
+
+    // Declaración sin valor usada por el analizador semántico
+    public Variable(String identificador, Integer tipo);
+
+    // Declaración con valor usada por el intérprete
+    public Variable(String identificador, Integer tipo, Object valor);
+    
+    /*
+    *   No existen metodos que permitan cambiar el identificador ni el tipo de una variable tras su creacion
+    */
+    public String getIdentificador();
+    public Integer getTipo();
+    
+    // Evita el acceso a una variable sin valor
+    public Object getValor();
+
+    // Comprueba que los valores asignados coincidan con el tipo de la variable
+    public void setValor(Object valor);
+}
+```
+
+
 #### Gramática atribuida
 ```antlrv4
 programa: PROGRAMA variables subprogramas instrucciones EOF;
@@ -138,7 +171,23 @@ variables: VARIABLES d=(decl_var PyC)* // {almacenar cada d en almacen de variab
 ##### Decision 2
 Para interpretar un programa, es necesario calcular el valor de sus expresiones.
 
-Las expresiones se calculan de manera recursiva.
+Dado que la resolucion de una expresion depende de su contexto, es decir, depende de donde se encuentre
+ubicada la expresion en el programa, se creara una clase generica encargada de resolver una expresion a partir
+de un contexto dado.
+
+A grandes rasgos, la clase *ExprParser* recibe un almacen de variables y una lista con las funciones y procedimientos
+disponibles y en base a esta informacion, resuelve la expresion a un valor.
+
+```java
+public class ExprParser extends AnasintBaseVisitor<Object> {
+    private HashMap<String, Variable> almacenVariables;
+    private List<Subprograma> subprogramas;
+
+    public ExprParser(HashMap<String, Variable> almacenVariables, List<Subprograma> subprogramas);
+}
+
+```
+
 
 ###### Gramatica atribuida
 
@@ -155,7 +204,7 @@ expr_entera: expr1=expr_entera MAS expr2=expr_entera // {valor=suma(expr1, expr2
             ;
 
 acceso_secuencia: ident=IDENTIFICADOR INICIO_CORCHETE elemento=expr_entera FIN_CORCHETE; // {obtiene
-    // la secuencia del almacen de variables y devuelve la posicion valor} 
+    // la secuencia del almacen de variables y devuelve el valor de la posicion} 
 
 // (parametro de salida valor)
 expr_booleana: TRUE {valor=true}
@@ -195,7 +244,47 @@ Por ello, definimos un almacen de funciones/procedimientos que contiene cada una
 | mayor         | [Parametro("a", "NUM")] | [Parametro("d", "LOG")] | [Variable("b", "NUM", null)] | d = T;        |
 | vacio         | [Parametro("d", "LOG")] | null                    | [Variable("c", "NUM", null)] | d = F;        |
 
-A la hora de llamar a una funcion, la informacion almacenada permitira su ejecucion.
+Esta informacion se encapsula en una clase *Subprograma* generica, que contiene toda la informacion necesaria
+para ejecutar una funcion o procedimiento.
+
+```java
+public class Subprograma {
+    protected String identificador;
+    protected List<Parametro> parametrosEntrada;
+    protected List<Parametro> parametrosSalida;
+
+    protected HashMap<String, Variable> almacenVariables;
+    protected Object instruccionesSubprograma;
+
+    // Indica si es funcion o procedimiento
+    protected boolean esFuncion;
+
+    // Crea un subprograma de tipo funcion
+    public Subprograma(String identificador, List<Parametro> parametrosEntrada, List<Parametro> parametrosSalida,
+                       HashMap<String, Variable> almacenVariables, List<Anasint.Instrucciones_funcionContext> instruccionesSubprograma);
+    
+    // Crea un subprograma de tipo procedimiento
+    public Subprograma(String identificador, List<Parametro> parametrosEntrada,
+                       HashMap<String, Variable> almacenVariables, List<Anasint.Instrucciones_procedimientoContext> instruccionesSubprograma);
+
+    // Ejecuta una funcion o procedimiento y devuelve su resultado
+    public Object Execute(HashMap<String, Variable> variablesLocales);
+}
+```
+A su vez, los parametros de una llamada a funcion/procedimiento se encuentran encapsulados
+en una clase *Parametro*.
+
+```java
+public class Parametro {
+    private String identificador;
+    private Integer tipo;
+
+    public Parametro(String identificador, Integer tipo);
+
+    public String getIdentificador();
+    public Integer getTipo();
+}
+```
 
 ###### Gramatica atribuida
 
@@ -222,6 +311,17 @@ La instruccion de asignacion actualiza el valor de las variables contenidas en e
 
 Esta asignacion puede ser simple, cuando se trata de una sola variable, o multiple, cuando se trata de varias.
 
+```
+asignacion: IDENTIFICADOR (COMA IDENTIFICADOR)* IGUAL expr (COMA expr)* PyC
+{
+    Si (coincide numero de variables y expresiones) entonces
+        Se calcula el valor de todas las expresiones implicadas
+        Se actualiza cada variable con su nuevo valor
+    Sino ERROR
+}
+```
+
+
 **Ejemplo de evaluacion**
 (*Solo se muestran los cambios al almacen*)
 ```
@@ -243,6 +343,17 @@ se asignan a las variables en orden de retorno.
 asignacion: ident=IDENTIFICADOR (COMA ident=IDENTIFICADOR)* IGUAL exp=expr (COMA exp=expr)* PyC;
 // {para cada ident actualizar su valor en el almacen con su exp pareja}
 // {Si solo hay una expr y es funcion, almacenar cada resultado en su variable pareja}
+```
+
+##### Interpretar(llamadas)
+Un programa en P puede realizar llamadas a procedimientos como una instruccion
+
+```
+llamada_procedimiento: IDENTIFICADOR INICIO_PARENTESIS (expr (COMA expr)*)? FIN_PARENTESIS
+{
+    Si existe el procedimiento llamar al procedimiento y modificar el valor de las variables pasadas como parametros
+    si no ERROR
+}
 ```
 
 
