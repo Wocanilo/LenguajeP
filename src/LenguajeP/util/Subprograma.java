@@ -50,7 +50,7 @@ public class Subprograma {
         }
 
         // Ejecutamos las instrucciones de la funcion/procedimiento
-        InstruccionesParser instruccionesParser = new InstruccionesParser(variablesLocales, new ArrayList<>()); // No se permite anidar llamadas a funciones/procedimientos
+        InstruccionesParser instruccionesParser = new InstruccionesParser(variablesLocales, new HashMap<>()); // No se permite anidar llamadas a funciones/procedimientos
 
         if(this.esFuncion){
             // Es una funcion
@@ -100,6 +100,10 @@ public class Subprograma {
 
     public HashMap<String, Variable> getVariablesLocales() {
         return almacenVariables;
+    }
+
+    public List<Parametro> getParametrosSalida() {
+        return parametrosSalida;
     }
 
     @Override

@@ -9,9 +9,9 @@ import java.util.List;
 
 public class ExprParser extends AnasintBaseVisitor<Object> {
     private HashMap<String, Variable> almacenVariables;
-    private List<Subprograma> subprogramas;
+    private HashMap<String, Subprograma> subprogramas;
 
-    public ExprParser(HashMap<String, Variable> almacenVariables, List<Subprograma> subprogramas){
+    public ExprParser(HashMap<String, Variable> almacenVariables, HashMap<String, Subprograma> subprogramas){
         this.almacenVariables = almacenVariables;
         this.subprogramas = subprogramas;
     }
@@ -188,9 +188,7 @@ public class ExprParser extends AnasintBaseVisitor<Object> {
         Subprograma subprograma = null;
 
         // Comprobamos que exista la funcion/procedimiento a llamar
-        for(Subprograma sub: this.subprogramas){
-            if(sub.getIdentificador().equalsIgnoreCase(identificador)) subprograma = sub;
-        }
+        subprograma = subprogramas.getOrDefault(identificador, null);
 
         // El subprograma no existe
         if(subprograma == null) throw new RuntimeException(String.format("Runtime error: function/procedure %s not declared", identificador));
@@ -211,16 +209,28 @@ public class ExprParser extends AnasintBaseVisitor<Object> {
             List<Anasint.ExprContext> expresiones = ctx.expr();
             List<Parametro> parametrosEntrada = subprograma.getParametrosEntrada();
 
-            // Comprobamos que el numero de expresiones coincide
-            // TODO: podria contener una llamada a funcion?
+            // Comprobamos que el numero de expresiones coincidan
             if(expresiones.size() != parametrosEntrada.size()) throw new RuntimeException(String.format("Runtime Error: function/procedure call to '%s' with invalid number of parameters '%s'",
                     identificador, expresiones.size()));
 
-
             for(int i = 0; i<expresiones.size(); i++){
-                Object expr = visit(expresiones.get(i));
+                Anasint.ExprContext expresion = expresiones.get(i);
+                Object expr = visit(expresion);
                 Object exprValue;
-                // TODO: permitir anidar llamadas a funciones, ahora mismo no se desempaqueta la lista devuelta por la funcion.
+
+                // Si se trata de una funcion anidada, esta solo podra devolver un valor
+                if(expresion.expr_entera() != null && expresion.expr_entera().llamada_func_proc() != null){
+                    Subprograma sub = this.subprogramas.getOrDefault(expresion.expr_entera().llamada_func_proc().IDENTIFICADOR().getText(), null);
+
+                    if(sub == null) throw new RuntimeException(String.format("Runtime error: function/procedure %s not declared", identificador));
+
+                    if(!sub.isEsFuncion()) throw new RuntimeException(String.format("Runtime error: procedures can not be used as parameters '%s'", identificador));
+                    if(sub.getParametrosSalida().size() != 1) throw new RuntimeException(String.format("Runtime error: functions that returns multiple values can not " +
+                            "be used as parameters '%s'", identificador));
+
+                    // Debemos desempaquetar el valor devuelto por la funcion
+                    expr = ((List<Object>) expr).get(0);
+                }
 
                 // Hay que desencapsular las variables
                 if(Variable.class.isInstance(expr)){

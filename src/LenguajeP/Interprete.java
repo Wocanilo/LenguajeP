@@ -20,8 +20,8 @@ public class Interprete extends AnasintBaseVisitor<Object> {
 
         // Creamos el almacen de funciones y procedimientos
         SubprogramaParser subprogramasParser = new SubprogramaParser();
-        List<Subprograma> subprogramas = (List<Subprograma>) subprogramasParser.visit(ctx.subprogramas());
-        subprogramas.add(new Mostrar());
+        HashMap<String, Subprograma> subprogramas = (HashMap<String, Subprograma>) subprogramasParser.visit(ctx.subprogramas());
+        subprogramas.put("mostrar", new Mostrar());
 
         // Procesamos las instrucciones del programa
         InstruccionesParser instruccionesParser = new InstruccionesParser(this.almacenVariables, subprogramas);

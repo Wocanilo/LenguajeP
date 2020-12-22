@@ -16,9 +16,9 @@ public class InstruccionesParser extends AnasintBaseVisitor<Object> {
      */
     private HashMap<String, Variable> almacenVariables;
     private ExprParser exprParser;
-    private List<Subprograma> subprogramas;
+    private HashMap<String, Subprograma> subprogramas;
 
-    public InstruccionesParser(HashMap<String, Variable> almacenVariables, List<Subprograma> subprogramas){
+    public InstruccionesParser(HashMap<String, Variable> almacenVariables, HashMap<String, Subprograma> subprogramas){
         this.almacenVariables = almacenVariables;
         this.subprogramas = subprogramas;
         this.exprParser = new ExprParser(this.almacenVariables, subprogramas);
@@ -43,11 +43,7 @@ public class InstruccionesParser extends AnasintBaseVisitor<Object> {
                 Subprograma subprograma = null;
                 String identificador = ctx.expr(0).expr_entera().llamada_func_proc().getStart().getText();
 
-                for(Subprograma sub: this.subprogramas){
-                    if(sub.getIdentificador().equalsIgnoreCase(identificador)){
-                        subprograma = sub;
-                    }
-                }
+                subprograma = subprogramas.getOrDefault(identificador, null);
 
                 if(subprograma == null) throw new RuntimeException(String.format("Runtime Error: tried to call an undefined function/proc '%s'", identificador));
 

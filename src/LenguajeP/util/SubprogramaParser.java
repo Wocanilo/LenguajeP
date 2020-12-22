@@ -10,17 +10,19 @@ import java.util.List;
 public class SubprogramaParser extends AnasintBaseVisitor<Object> {
     @Override
     public Object visitSubprogramas(Anasint.SubprogramasContext ctx){
-        List<Subprograma> subprogramas = new ArrayList<>();
+        HashMap<String, Subprograma> subprogramas = new HashMap<>();
 
         if(ctx.def_func() != null){
             for(Anasint.Def_funcContext defFuncion: ctx.def_func()){
-                subprogramas.add((Subprograma) visit(defFuncion));
+                Subprograma sub = (Subprograma) visit(defFuncion);
+                subprogramas.put(sub.identificador, sub);
             }
         }
 
         if(ctx.def_proc() != null){
             for(Anasint.Def_procContext defProc: ctx.def_proc()){
-                subprogramas.add((Subprograma) visit(defProc));
+                Subprograma sub = (Subprograma) visit(defProc);
+                subprogramas.put(sub.identificador, sub);
             }
         }
 

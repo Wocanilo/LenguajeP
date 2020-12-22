@@ -157,16 +157,17 @@ public class Variable {
 
 #### Gramática atribuida
 ```antlrv4
-programa: PROGRAMA variables subprogramas instrucciones EOF;
+// (parámetro de salida var)
+decl_var: ident=IDENTIFICADOR (COMA IDENTIFICADOR)* PyP t=tipo; // {var=Varible(ident, tipo)}
 
-// (parámetro de salida t)
 tipo: NUM // {t=entero}
     | LOG // {t=booleano}
     | SEQ_NUM // {t=secuencia_entera}
     | SEQ_LOG // {t=secuencia_booleana}
     ;
 
-variables: VARIABLES d=(decl_var PyC)* // {almacenar cada d en almacen de variables} ;
+// (salida almacen de variables)
+variables: VARIABLES var=(decl_var PyC)* // {almacenar cada var en almacen de variables} ;
 ```
 ##### Decision 2
 Para interpretar un programa, es necesario calcular el valor de sus expresiones.
@@ -181,7 +182,7 @@ disponibles y en base a esta informacion, resuelve la expresion a un valor.
 ```java
 public class ExprParser extends AnasintBaseVisitor<Object> {
     private HashMap<String, Variable> almacenVariables;
-    private List<Subprograma> subprogramas;
+    private HashMap<String, Subprograma> subprogramas;
 
     public ExprParser(HashMap<String, Variable> almacenVariables, List<Subprograma> subprogramas);
 }
@@ -203,8 +204,7 @@ expr_entera: expr1=expr_entera MAS expr2=expr_entera // {valor=suma(expr1, expr2
             | llamada_func_proc // {valor=ejecutaFuncion(llamada_func_proc)}
             ;
 
-acceso_secuencia: ident=IDENTIFICADOR INICIO_CORCHETE elemento=expr_entera FIN_CORCHETE; // {obtiene
-    // la secuencia del almacen de variables y devuelve el valor de la posicion} 
+acceso_secuencia: ident=IDENTIFICADOR INICIO_CORCHETE elemento=expr_entera FIN_CORCHETE; // {getValorAcceso(ident, elemento)
 
 // (parametro de salida valor)
 expr_booleana: TRUE {valor=true}
@@ -228,8 +228,30 @@ expr_secuencia: INICIO_CORCHETE elementos_secuencia FIN_CORCHETE // {secuencia=e
 
 // (funcion getVariable(ident){
 //    Si ident in almacenVariables entonces
-//        devolver valor variable
+//        devolver variable
 //    sino ERROR variable no declarada
+// )
+// (funcion getValorAcceso(ident, elemento){
+//      variable = getVariable(ident)
+//      si variable es SEQ_LOG o SEQ_NUM entonces
+//         si elemento < variable.size() entonces
+//           devolver variable.valor[elemento]
+//      devolver ERROR
+//      
+// (funcion suma(expr1, expr2){
+//      valor1 = resuelve expr1
+//      valor2 = resuelve expr2
+//      devuelve valor1 + valor2
+// )
+// (funcion resta(expr1, expr2){
+//      valor1 = resuelve expr1
+//      valor2 = resuelve expr2
+//      devuelve valor1 - valor2
+// )
+// (funcion multiplica(expr1, expr2){
+//      valor1 = resuelve expr1
+//      valor2 = resuelve expr2
+//      devuelve valor1 * valor2
 // )
 ```
 
@@ -306,6 +328,28 @@ def_proc: PROCEDIMIENTO ident=IDENTIFICADOR INICIO_PARENTESIS entrada=parametros
 #### Decision 4
 Interpretar un programa es interpretar secuencialmente sus instrucciones.
 
+Para analizar las instrucciones definiremos una clase *InstruccionesParser* que se encargara
+de la interpretacion de las instrucciones.
+
+```java
+public class InstruccionesParser extends AnasintBaseVisitor<Object> {
+    /*
+    Esta clase se encarga de parsear la seccion INSTRUCCIONES
+
+    Pasar el almacen de variables al instanciar la clase permite utilizar la misma clase tanto para el programa como los subprogramas
+     */
+    private HashMap<String, Variable> almacenVariables;
+    private ExprParser exprParser;
+    private HashMap<String, Subprograma> subprogramas;
+
+    public InstruccionesParser(HashMap<String, Variable> almacenVariables, HashMap<String, Subprograma> subprogramas);
+}
+```
+
+Al delegar la interpretacion de las instrucciones a una clase propia, el mismo codigo puede
+ser utilizado para interpretar los subprogramas, dado que al instanciar la clase debemos proporcionar
+informacion sobre el contexto a analizar.
+
 ##### Interpretar(asignaciones)
 La instruccion de asignacion actualiza el valor de las variables contenidas en el almacen de variables con el valor de una expresion.
 
@@ -317,7 +361,11 @@ asignacion: IDENTIFICADOR (COMA IDENTIFICADOR)* IGUAL expr (COMA expr)* PyC
     Si (coincide numero de variables y expresiones) entonces
         Se calcula el valor de todas las expresiones implicadas
         Se actualiza cada variable con su nuevo valor
-    Sino ERROR
+    Sino 
+        si hay una sola expresion y es una llamada a funcion entonces
+            si parametrosSalidaFuncion.size() es igual a variables.size() entonces
+               Se ejecuta la funcion y se actualiza cada variable con su nuevo valor
+    ERROR
 }
 ```
 
@@ -346,13 +394,16 @@ asignacion: ident=IDENTIFICADOR (COMA ident=IDENTIFICADOR)* IGUAL exp=expr (COMA
 ```
 
 ##### Interpretar(llamadas)
-Un programa en P puede realizar llamadas a procedimientos como una instruccion
+Es posible llamar a las funciones/procedimientos directamente. Sin embargo, tan solo la llamadas
+a procedimientos produciran cambios.
+
+Cuando se anidan llamadas a funciones, las funciones anidadas tan solo podran devolver un valor.
 
 ```
 llamada_procedimiento: IDENTIFICADOR INICIO_PARENTESIS (expr (COMA expr)*)? FIN_PARENTESIS
 {
     Si existe el procedimiento llamar al procedimiento y modificar el valor de las variables pasadas como parametros
-    si no ERROR
+    sino ERROR
 }
 ```
 
