@@ -17,11 +17,13 @@ public class InstruccionesParser extends AnasintBaseVisitor<Object> {
     private HashMap<String, Variable> almacenVariables;
     private ExprParser exprParser;
     private HashMap<String, Subprograma> subprogramas;
+    private CondicionParser condicionParser;
 
     public InstruccionesParser(HashMap<String, Variable> almacenVariables, HashMap<String, Subprograma> subprogramas){
         this.almacenVariables = almacenVariables;
         this.subprogramas = subprogramas;
-        this.exprParser = new ExprParser(this.almacenVariables, subprogramas);
+        this.exprParser = new ExprParser(almacenVariables, subprogramas);
+        this.condicionParser = new CondicionParser(almacenVariables, subprogramas);
     }
 
     // Comprueba si una expresion es funcion
@@ -99,10 +101,34 @@ public class InstruccionesParser extends AnasintBaseVisitor<Object> {
     }
 
     @Override
+    public Object visitCondicional(Anasint.CondicionalContext ctx){
+        Boolean condicion = (Boolean) this.condicionParser.visit(ctx.condicion_completa());
+
+        if(condicion){
+            // Ejecutamos las instrucciones contenidas
+            for(Anasint.InstruccionContext instruccion: ctx.instruccion()){
+                visit(instruccion);
+            }
+        }else{
+            // Comprobamos si tiene un else
+            if(ctx.instruccion_condicionalSino() != null){
+                // Ejecutamos sus instrucciones
+                for(Anasint.InstruccionContext instruccion: ctx.instruccion_condicionalSino().instruccion()){
+                    visit(instruccion);
+                }
+            }
+        }
+
+        return null;
+    }
+
+
+    @Override
     public Object visitInstruccion(Anasint.InstruccionContext ctx){
 
-        if(ctx.asignacion() != null) return new InstruccionAsignacion((Anasint.AsignacionContext) visit(ctx.asignacion()));
+        if(ctx.asignacion() != null) visit(ctx.asignacion());
         if(ctx.llamada_func_proc() != null) visit(ctx.llamada_func_proc());
+        if(ctx.condicional() != null) visit(ctx.condicional());
 
         return null;
     }

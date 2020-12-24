@@ -257,6 +257,7 @@ public class ExprParser extends AnasintBaseVisitor<Object> {
             }
 
             //TODO: hay que tener en cuenta si los parametros son de lectura y escritura o no
+            // Los parametros de entrada de las funciones son de solo lectura. Se cambia facil en la clase variable para lanzar excepcion
 
             // Ejecutamos la funcion/procedimiento
             resultado = subprograma.Execute(variablesLocales);
