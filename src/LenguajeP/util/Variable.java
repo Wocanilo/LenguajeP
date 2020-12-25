@@ -12,6 +12,7 @@ public class Variable {
     private String identificador;
     private Integer tipo;
     private Object valor;
+    private Boolean RW = true; // Por defecto las variables son de RW
 
     // Declaración sin valor usada por el analizador semántico
     public Variable(String identificador, Integer tipo){
@@ -24,6 +25,14 @@ public class Variable {
         this.identificador = identificador;
         this.tipo = tipo;
         this.setValor(valor);
+    }
+
+    // Declaración con valor usada por el intérprete
+    public Variable(String identificador, Integer tipo, Object valor, Boolean RW){
+        this.identificador = identificador;
+        this.tipo = tipo;
+        this.setValor(valor);
+        this.RW = RW;
     }
 
     public String getIdentificador() {
@@ -41,6 +50,8 @@ public class Variable {
     }
 
     public void setValor(Object valor) {
+        if(!this.RW) throw new RuntimeException(String.format("Runtime Error: tried to modify a read only variable '%s'", this.getIdentificador()));
+
         boolean throwError = false;
         if(this.getTipo() == Anasint.NUM && !Integer.class.isInstance(valor)) throwError = true;
         else if(this.getTipo() == Anasint.LOG && !Boolean.class.isInstance(valor)) throwError = true;

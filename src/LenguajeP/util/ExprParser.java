@@ -245,8 +245,14 @@ public class ExprParser extends AnasintBaseVisitor<Object> {
                 if(variablesLocales.containsKey(param.getIdentificador())) throw new RuntimeException(String.format("Runtime Error: function/procedure parameter name collision with local variables '%s'",
                         param.getIdentificador()));
 
+                Variable variableLocal;
                 // Creamos la variable de entrada local
-                Variable variableLocal = new Variable(param.getIdentificador(), param.getTipo(), exprValue);
+                if(subprograma.isEsFuncion()) {
+                    // Las variables de entrada de una funcion son de solo lectura
+                    variableLocal = new Variable(param.getIdentificador(), param.getTipo(), exprValue, false);
+                }else{
+                    variableLocal = new Variable(param.getIdentificador(), param.getTipo(), exprValue);
+                }
 
                 if(Variable.class.isInstance(expr)) {
                     // Como se ha desencapsulado, hay que guardar la referencia a la original para poder cambiar su valor al terminar
