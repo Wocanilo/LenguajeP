@@ -1,3 +1,9 @@
+parser grammar Anasint
+
+options{
+    tokenVocab=Analex
+}
+
 programa: PROGRAMA variables subprogramas instrucciones_programa EOF
 
 tipo: NUM
@@ -31,7 +37,13 @@ expr_booleana: TRUE
 
 
 acceso_secuencia: IDENTIFICADOR INICIO_CORCHETE expr_entera FIN_CORCHETE // Acceso elemento secuencia
-elementos_secuencia: (expr_entera|expr_booleana) (COMA (expr_entera|expr_booleana))* // De forma implicita permite la llamada a funciones
+
+// Tipo especial de expr usada en los elementos de una secuencia para asegurar el parseo secuencial
+expr_elementosSecuencia: expr_entera
+                       | expr_booleana
+
+
+elementos_secuencia: expr_elementosSecuencia (COMA expr_elementosSecuencia)* // De forma implicita permite la llamada a funciones
 expr_secuencia: INICIO_CORCHETE elementos_secuencia FIN_CORCHETE // Definicion secuencia
               | INICIO_CORCHETE FIN_CORCHETE // Definicion lista vacia
 
@@ -65,25 +77,27 @@ condicion_completa: condicion_completa CONJUNCION condicion_completa
 
 
 // Estructura condicional si-sino-fsi
-condicional: SI INICIO_PARENTESIS condicion_completa FIN_PARENTESIS ENTONCES instruccion+ (SINO instruccion+)? FSI
+condicional: SI INICIO_PARENTESIS condicion_completa FIN_PARENTESIS ENTONCES instruccion+ (SINO instruccion_condicionalSino)? FSI
+instruccion_condicionalSino: instruccion+
 
 // Estructura iterativa mientras-hacer-fmientras
 ruptura: RUPTURA PyC
 iteracion: MIENTRAS INICIO_PARENTESIS condicion_completa FIN_PARENTESIS HACER (instruccion|ruptura)+ FMIENTRAS
 
-instruccion: (asignacion|condicional|iteracion)
+instruccion: (asignacion|condicional|iteracion|(llamada_func_proc PyC))
 
 instrucciones_programa: INSTRUCCIONES instruccion+ // Los programas con 0 instrucciones no son correctos
 
 // Seccion de subprogramas. Se ha separado la definicion de parametros para facilitar su parseo
 parametro: tipo IDENTIFICADOR
 parametros: parametro (COMA parametro)*
-devolver: DEV expr (COMA expr)*
-instrucciones_funcion: INSTRUCCIONES (instruccion|devolver)+ // Las funciones sin instrucciones no son correctas
-instrucciones_procedimiento: INSTRUCCIONES (instruccion|devolver)+ // Las funciones sin instrucciones no son correctas
+devolver: DEV expr (COMA expr)* PyC
 
-def_func: FUNCION IDENTIFICADOR INICIO_PARENTESIS parametros? FIN_PARENTESIS DEV INICIO_PARENTESIS parametros FIN_PARENTESIS variables instrucciones_funcion FFUNCION
-def_proc: PROCEDIMIENTO IDENTIFICADOR INICIO_PARENTESIS parametros? FIN_PARENTESIS variables instrucciones_procedimiento FPROCEDIMIENTO
+instrucciones_funcion:(asignacion|condicional|iteracion|(llamada_func_proc PyC)|devolver) // Las funciones sin instrucciones no son correctas
+instrucciones_procedimiento: (asignacion|condicional|iteracion|(llamada_func_proc PyC)) // Los procedimintos sin instrucciones no son correctas
+
+def_func: FUNCION IDENTIFICADOR INICIO_PARENTESIS parametros? FIN_PARENTESIS DEV INICIO_PARENTESIS parametros FIN_PARENTESIS variables INSTRUCCIONES instrucciones_funcion+ FFUNCION
+def_proc: PROCEDIMIENTO IDENTIFICADOR INICIO_PARENTESIS parametros? FIN_PARENTESIS variables INSTRUCCIONES instrucciones_procedimiento+ FPROCEDIMIENTO
 
 // La seccion de subprogramas esta formado por 0 o varias declaraciones de funciones y/o procedimientos
 subprogramas: SUBPROGRAMAS (def_func | def_proc)*

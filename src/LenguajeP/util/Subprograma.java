@@ -15,6 +15,8 @@ public class Subprograma {
     protected HashMap<String, Variable> almacenVariables;
     protected Object instruccionesSubprograma;
 
+    // TODO: crear funciones predefinidas y permitir llamadas a funciones dentro de funciones
+
     // Indica si es funcion o procedimiento
     protected boolean esFuncion;
 

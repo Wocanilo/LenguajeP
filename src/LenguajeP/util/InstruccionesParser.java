@@ -86,7 +86,7 @@ public class InstruccionesParser extends AnasintBaseVisitor<Object> {
             variable.setValor(valorExpr);
         }
 
-        return ctx;
+        return null;
     }
 
     @Override
@@ -106,15 +106,17 @@ public class InstruccionesParser extends AnasintBaseVisitor<Object> {
 
         if(condicion){
             // Ejecutamos las instrucciones contenidas
-            for(Anasint.InstruccionContext instruccion: ctx.instruccion()){
-                visit(instruccion);
+            for(Anasint.Instruccion_condicionalSiContext instruccion: ctx.instruccion_condicionalSi()){
+                if(instruccion.ruptura() != null) return Anasint.RUPTURA;
+                visit(instruccion.instruccion());
             }
         }else{
             // Comprobamos si tiene un else
             if(ctx.instruccion_condicionalSino() != null){
                 // Ejecutamos sus instrucciones
-                for(Anasint.InstruccionContext instruccion: ctx.instruccion_condicionalSino().instruccion()){
-                    visit(instruccion);
+                for(Anasint.Instruccion_condicionalSinoContext instruccion: ctx.instruccion_condicionalSino()){
+                    if(instruccion.ruptura() != null) return Anasint.RUPTURA;;
+                    visit(instruccion.instruccion());
                 }
             }
         }
@@ -122,15 +124,39 @@ public class InstruccionesParser extends AnasintBaseVisitor<Object> {
         return null;
     }
 
+    @Override
+    public Object visitIteracion(Anasint.IteracionContext ctx){
+        // Comprobamos si la condicion se cumple
+        Boolean condicion = (Boolean) this.condicionParser.visit(ctx.condicion_completa());
+
+        // Repetimos mientras se cumpla
+        while(condicion){
+            // Ejecutamos las instrucciones
+            for(Anasint.Instruccion_iteracionContext instruccion: ctx.instruccion_iteracion()){
+                // Si es un break debemos terminar el bucle
+                if(instruccion.ruptura() != null) return null;
+                else {
+                    // Si se recibe un Anasint.RUPTURA debemos acabar la ejecucion del bucle
+                    Object res = visit(instruccion.instruccion());
+                    if(Integer.class.isInstance(res) && ((Integer)res) == Anasint.RUPTURA ) return null;
+                }
+            }
+            // Volvemos a comprobar la condicion
+            condicion = (Boolean) this.condicionParser.visit(ctx.condicion_completa());
+        }
+
+        return null;
+    }
 
     @Override
     public Object visitInstruccion(Anasint.InstruccionContext ctx){
 
-        if(ctx.asignacion() != null) visit(ctx.asignacion());
-        if(ctx.llamada_func_proc() != null) visit(ctx.llamada_func_proc());
-        if(ctx.condicional() != null) visit(ctx.condicional());
+        if(ctx.asignacion() != null) return visit(ctx.asignacion());
+        if(ctx.llamada_func_proc() != null) return visit(ctx.llamada_func_proc());
+        if(ctx.condicional() != null) return visit(ctx.condicional());
+        if(ctx.iteracion() != null) return visit(ctx.iteracion());
 
-        return null;
+        throw new RuntimeException(String.format("Runtime Error: unknown instruction '%s'", ctx.getText()));
     }
 
     @Override
