@@ -3,9 +3,11 @@ package LenguajeP;
 import LenguajeP.Antlr.Anasint;
 import LenguajeP.Antlr.AnasintBaseVisitor;
 import LenguajeP.util.*;
+import LenguajeP.util.subprograma.Mostrar;
+import LenguajeP.util.subprograma.Ultima_Posicion;
+import LenguajeP.util.subprograma.Vacia;
 
 import java.util.HashMap;
-import java.util.List;
 
 public class Interprete extends AnasintBaseVisitor<Object> {
     private HashMap<String, Variable> almacenVariables;
@@ -22,6 +24,8 @@ public class Interprete extends AnasintBaseVisitor<Object> {
         SubprogramaParser subprogramasParser = new SubprogramaParser();
         HashMap<String, Subprograma> subprogramas = (HashMap<String, Subprograma>) subprogramasParser.visit(ctx.subprogramas());
         subprogramas.put("mostrar", new Mostrar());
+        subprogramas.put("vacia", new Vacia());
+        subprogramas.put("ultima_posicion", new Ultima_Posicion());
 
         // Procesamos las instrucciones del programa
         InstruccionesParser instruccionesParser = new InstruccionesParser(this.almacenVariables, subprogramas);

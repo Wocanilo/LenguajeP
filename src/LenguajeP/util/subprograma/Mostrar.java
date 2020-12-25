@@ -1,12 +1,15 @@
-package LenguajeP.util;
+package LenguajeP.util.subprograma;
 
 import LenguajeP.Antlr.Anasint;
+import LenguajeP.util.Parametro;
+import LenguajeP.util.Subprograma;
+import LenguajeP.util.Variable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class Mostrar extends Subprograma{
+public class Mostrar extends Subprograma {
     public Mostrar(){
         // TODO: esta solucion es elegante pero no muestra el nombre de la variable original debido a la traduccion realizada
         // o se ofrece la posibilidad de hacer bypass de la traduccion o se hace un bypass de los subprogramas.
