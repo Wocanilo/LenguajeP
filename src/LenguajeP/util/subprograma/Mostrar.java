@@ -15,7 +15,7 @@ public class Mostrar extends Subprograma {
         // o se ofrece la posibilidad de hacer bypass de la traduccion o se hace un bypass de los subprogramas.
         this.identificador = "mostrar";
         this.parametrosEntrada = new ArrayList<>();
-        this.parametrosEntrada.add(new Parametro("a", Anasint.NO_TIPO)); // No tipo -> Admite cualquier tipo
+        this.parametrosEntrada.add(new Parametro("*", Anasint.NO_TIPO)); // No tipo -> Admite cualquier tipo
         this.almacenVariables = new HashMap<>();
 
         this.parametrosSalida = new ArrayList<>();
@@ -25,7 +25,8 @@ public class Mostrar extends Subprograma {
     @Override
     public HashMap<String, Variable> Execute(HashMap<String, Variable> variablesLocales, HashMap<String, Subprograma> subprogramas){
         // Mostramos por pantalla el valor de la expresion pasada
-        System.out.println(String.format("mostrar -> %s", variablesLocales.get("a").getValor()));
+        Variable var = variablesLocales.get("*");
+        System.out.println(String.format("%s -> %s", var.getIdentificador(), var.getValor()));
         return new HashMap<>();
     }
 }

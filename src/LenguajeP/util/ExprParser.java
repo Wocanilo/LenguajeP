@@ -251,7 +251,10 @@ public class ExprParser extends AnasintBaseVisitor<Object> {
                     // Las variables de entrada de una funcion son de solo lectura
                     variableLocal = new Variable(param.getIdentificador(), param.getTipo(), exprValue, false);
                 }else{
-                    variableLocal = new Variable(param.getIdentificador(), param.getTipo(), exprValue);
+                    // Si el nombre de una variable es un asterisco, sustituimos el identificador por el nombre original de la variable.
+                    // Usado por mostrar
+                    if(param.getIdentificador() == "*") variableLocal = new Variable(expresion.getText(), param.getTipo(), exprValue);
+                    else variableLocal = new Variable(param.getIdentificador(), param.getTipo(), exprValue);
                 }
 
                 if(Variable.class.isInstance(expr)) {
@@ -267,7 +270,7 @@ public class ExprParser extends AnasintBaseVisitor<Object> {
         }
 
         // Si era un procedimiento, modificamos los parametros de entrada en el scope global
-        if(!subprograma.isEsFuncion()){
+         if(!subprograma.isEsFuncion()){
             // Tan solo se modifican las variables que hayan sido traducidas, el resto no existen en el scope global.
             // Pueden no existir porque se paso como parametro un entero, por ejemplo. Por tanto, son descartadas.
             for(Variable var: ((HashMap<String, Variable>) resultado).values()){
