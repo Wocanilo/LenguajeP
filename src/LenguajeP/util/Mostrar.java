@@ -20,7 +20,7 @@ public class Mostrar extends Subprograma{
     }
 
     @Override
-    public HashMap<String, Variable> Execute(HashMap<String, Variable> variablesLocales){
+    public HashMap<String, Variable> Execute(HashMap<String, Variable> variablesLocales, HashMap<String, Subprograma> subprogramas){
         // Mostramos por pantalla el valor de la expresion pasada
         System.out.println(String.format("mostrar -> %s", variablesLocales.get("a").getValor()));
         return new HashMap<>();

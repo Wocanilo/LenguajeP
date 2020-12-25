@@ -43,7 +43,7 @@ public class Subprograma {
         this.esFuncion = false;
     }
 
-    public Object Execute(HashMap<String, Variable> variablesLocales){
+    public Object Execute(HashMap<String, Variable> variablesLocales, HashMap<String, Subprograma> subprogramas){
         // Si es funcion hay parametros de salida
         if(this.esFuncion) {
             for(Parametro salida: this.parametrosSalida){
@@ -52,7 +52,7 @@ public class Subprograma {
         }
 
         // Ejecutamos las instrucciones de la funcion/procedimiento
-        InstruccionesParser instruccionesParser = new InstruccionesParser(variablesLocales, new HashMap<>()); // No se permite anidar llamadas a funciones/procedimientos
+        InstruccionesParser instruccionesParser = new InstruccionesParser(variablesLocales, subprogramas); // No se permite anidar llamadas a funciones/procedimientos
 
         if(this.esFuncion){
             // Es una funcion

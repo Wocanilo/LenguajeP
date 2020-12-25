@@ -203,7 +203,7 @@ public class ExprParser extends AnasintBaseVisitor<Object> {
 
         if(ctx.expr() == null){
             // No hay parametros de entrada, ejecutamos directamente la funcion/procedimiento
-            resultado = subprograma.Execute(variablesLocales);
+            resultado = subprograma.Execute(variablesLocales, this.subprogramas);
         }else{
             // Debemos resolver las expresiones pasads como parametros
             List<Anasint.ExprContext> expresiones = ctx.expr();
@@ -260,7 +260,7 @@ public class ExprParser extends AnasintBaseVisitor<Object> {
             // Los parametros de entrada de las funciones son de solo lectura. Se cambia facil en la clase variable para lanzar excepcion
 
             // Ejecutamos la funcion/procedimiento
-            resultado = subprograma.Execute(variablesLocales);
+            resultado = subprograma.Execute(variablesLocales, this.subprogramas);
         }
 
         // Si era un procedimiento, modificamos los parametros de entrada en el scope global
