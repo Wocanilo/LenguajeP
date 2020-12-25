@@ -32,8 +32,6 @@ public class Interprete extends AnasintBaseVisitor<Object> {
         InstruccionesParser instruccionesParser = new InstruccionesParser(this.almacenVariables, subprogramas);
         instruccionesParser.visit(ctx.instrucciones_programa());
 
-
-
         return null;
     }
 }

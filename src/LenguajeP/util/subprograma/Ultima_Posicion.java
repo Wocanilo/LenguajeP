@@ -11,8 +11,6 @@ import java.util.List;
 
 public class Ultima_Posicion extends Subprograma {
     public Ultima_Posicion(){
-        // TODO: esta solucion es elegante pero no muestra el nombre de la variable original debido a la traduccion realizada
-        // o se ofrece la posibilidad de hacer bypass de la traduccion o se hace un bypass de los subprogramas.
         this.identificador = "ultima_Posicion";
         this.parametrosEntrada = new ArrayList<>();
         this.parametrosEntrada.add(new Parametro("a", Anasint.NO_TIPO)); // No tipo -> Admite cualquier tipo
