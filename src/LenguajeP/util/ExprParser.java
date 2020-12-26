@@ -93,6 +93,12 @@ public class ExprParser extends AnasintBaseVisitor<Object> {
                     // Importante recordar que esta rama tambien se visita en las expresiones booleanas
                     if(ctx.llamada_func_proc() != null) {
                         // Devolvemos el resultado de la llamada a funcion
+                        // Comprobamos que se trate de una funcion, si es un procedimiento no es valido
+                        Subprograma sub = this.subprogramas.get(ctx.llamada_func_proc().IDENTIFICADOR().getText());
+
+                        if(sub == null) throw new RuntimeException(String.format("Runtime error: function/procedure %s not declared", ctx.llamada_func_proc().IDENTIFICADOR().getText()));
+                        if(!sub.isEsFuncion()) throw new RuntimeException(String.format("Runtime error: ilegal procedure call in expresion '%s'", ctx.llamada_func_proc().getText()));
+
                         return visit(ctx.llamada_func_proc());
                     }else if(ctx.acceso_secuencia() != null){
                         // Se trata del acceso a una secuencia

@@ -29,6 +29,15 @@ El lenguaje P define dos clases de tipos de datos:
     - **Secuencia lógica**: secuencia de valores lógicos.
     Se declara con la palabra reservada *SEQ(LOG)*.
 
+La equivalencia de tipos entre P y Java es la siguiente:
+
+| Tipo en P | Tipo en Java  |
+|-----------|---------------|
+| NUM       | Integer       |
+| LOG       | Boolean       |
+| SEQ(NUM)  | List\<Integer> |
+| SEQ(LOG)  | List\<Boolean> |
+
 La declaración de variables consta de dos partes:
 - Identificadores separados por comas
 - Tipo de las variables a declarar
@@ -42,9 +51,29 @@ f,g:SEQ(NUM);
 Cada variable declarada en un programa tiene un tipo **invariable**
 
 ### Sección SUBPROGRAMAS
-Empieza con la palabra reservada **SUBPROGRAMAS**, seguida de tantas declaraciones de funciones o procedimientos como sean neceasrias.
+Empieza con la palabra reservada **SUBPROGRAMAS**, seguida de tantas declaraciones de funciones o procedimientos como sean necesarias.
 
-Los subprogramas solo pueden acceder a sus variables locales o a los parametros pasados en un llamada.
+Los subprogramas solo pueden acceder a las variables declaradas en su sección variables o a los parametros pasados en un llamada.
+
+**Ejemplo alcance variables**
+
+```
+PROGRAMA
+VARIABLES
+    a:NUM;
+SUBPROGRAMAS
+    PROCEDIMIENTO prueba(NUM b)
+        VARIABLES
+            j: NUM;
+        INSTRUCCIONES
+            j = 25; -> Sentencia VÁLIDA
+            a = 25; -> Sentencia INVÁLIDA. La variable "a" no existe en el contexto del subprograma
+            b = 25; -> Sentencia VÁLIDA
+    FPROCEDIMIENTO
+INSTRUCCIONES
+    prueba(1);    
+```
+
 
 #### Funciones
 Las **funciones** tienen un conjunto (que puede estar vacío) de parámetros de entrada y un conjunto (no vacío) de parámetros de salida.
@@ -52,9 +81,9 @@ Los parámetros de entrada son de solo lectura y los de salida de lectura/escrit
 
 La funciones deben incluir en algún punto de sus instrucciones un retorno explícito de los parámetros de sálida mediate la instrucción *dev*
 
-Las funciones pueden formar parte de una expresion si solo devuelve un valor.
+Las funciones pueden formar parte de una expresión si solo devuelven un valor.
 
-Ejemplo:
+**Ejemplo declaración de función:**
 
 ```
 FUNCION mayor(NUM d) dev (NUM d)
@@ -71,10 +100,12 @@ FFUNCION
 Los **procedimientos** tienen un conjunto posiblemente vacío de parámetros de entrada y no tienen parámetros de salida.
 No hay devolución explícita de resultados.
 
-Las variables de entrada en un procedimiento son de **lectura/escritura**.
+Las variables de entrada en un procedimiento son de **lectura/escritura**. Por tanto, las modificaciones realizadas a estas
+variables dentro de un procedimiento se ven reflejadas en la variable pasada.
 
-La llamada a un procedimiento nunca puede formar parte de una expresión.
+La llamada a un procedimiento nunca puede formar parte de una expresión dado que no devuelve ningún valor.
 
+**Ejemplo declaración procedimiento:**
 ```
 PROCEDIMIENTO ejemplo(NUM res)
 VARIABLES
@@ -90,25 +121,67 @@ FPROCEDIMIENTO
 Empieza con la palabra reservada **INSTRUCCIONES** y está formada por tantas instrucciones como sean necesarias.
 
 Las instrucciones son:
-- Asignación
+- **Asignación**
     - Puede ser tanto simple como múltiple
-        - x = 1;
-        - x,y = 2,5;
-    - La asignaciones multiples se realizan de forma paralela
-- Condicional
+        - x = 1; `Simple`
+        - x,y = 2,5; `Múltiple`
+    - Las asignaciones multiples se realizan de forma paralela.
+- **Condicional**
     - Bloque de instrucciones cuya ejecucion depende del valor de verdad de una condición
-        - si-fsi
-        - si-sino-fsi
-    - Las condiciones tan solo se pueden realizar entre expresiones del mismo tipo.
-- Iteración
-    - Repite una serie de instrucciones mediante no se cumpla una condición
-    - mientras-hacer-fmientras
-- Ruptura de control:
+        - si-fsi `Ejecuta un bloque de código si se cumple una condición`
+          ```
+            si(condicion) entonces
+                ...; // condición es cierta
+            fsi
+          ```
+        - si-sino-fsi `Ejecuta un bloque de código si se cumple una condición y otro de no cumplirse`
+          ```
+            si(condicion) entonces
+                ...; // condición es cierta
+            sino
+                ...; // condicion es falsa
+            fsi
+          ```
+    - Las condiciones están formadas por expresiones del mismo tipo.
+- **Iteración**
+    - mientras-hacer-fmientras `Repite una serie de instrucciones mientras se cumpla una condición`
+      ```
+          mientras(condicion) hacer
+            ...;
+          fmientras
+      ```
+- **Ruptura de control**:
     -  Lleva al programa fuera del bloque en el que está localizada la ruptura.
-- Llamada a procedimiento o función
-- Devolución de resultados de una función: interrumpe la ejecucion de una funcion y devuelve los valores especificados
-- Mostrar por consola el valor de variables
+       ```
+       mientras(condicion) hacer
+           ...;
+           ruptura;
+           ...; // Nunca llega a ejecutarse
+       fmientras
+       ```
+- **Llamada a procedimiento o función**
+- **Devolución de resultados de una función**
+    - Interrumpe la ejecucion de una funcion y devuelve los valores especificados
+      ```
+        FUNCION mayor() dev (NUM e)
+        VARIABLES
+        INSTRUCCIONES
+            ...;
+            dev 42;
+            ...; // Nunca llega a ejecutarse;
+        FFUNCION
+      ```
+- **Mostrar por consola el valor de variables**
     - Permite mostrar por consola el valor de una expresion
+        ```
+        ...
+        INSTRUCCIONES
+        s = 12;
+        mostrar(s); -> 
+      
+        ----- Salida del programa -----
+        s -> 12
+        ```
     
 ## Decisiones de diseño
 
@@ -176,12 +249,12 @@ variables: VARIABLES var=(decl_var PyC)* // {almacenar cada var en almacen de va
 ##### Decision 2
 Para interpretar un programa, es necesario calcular el valor de sus expresiones.
 
-Dado que la resolucion de una expresion depende de su contexto, es decir, depende de donde se encuentre
-ubicada la expresion en el programa, se creara una clase generica encargada de resolver una expresion a partir
+Dado que la resolución de una expresión depende de su contexto, es decir, depende de donde se encuentre
+ubicada la expresión en el programa, se creara una clase genérica encargada de resolver una expresión a partir
 de un contexto dado.
 
-A grandes rasgos, la clase *ExprParser* recibe un almacen de variables y una lista con las funciones y procedimientos
-disponibles y en base a esta informacion, resuelve la expresion a un valor.
+A grandes rasgos, la clase *ExprParser* recibe un almacén de variables y una lista con las funciones y procedimientos
+disponibles y basándose en esta información, resuelve la expresión a un valor.
 
 ```java
 public class ExprParser extends AnasintBaseVisitor<Object> {
@@ -260,7 +333,7 @@ expr_secuencia: INICIO_CORCHETE elementos_secuencia FIN_CORCHETE // {secuencia=e
 ```
 
 ##### Decision 3
-Para interpretar un programa, es necesario conocer que funciones y procedimientos existen, asi como conocer sus parametros
+Para interpretar un programa, es necesario conocer qué funciones y procedimientos existen, asi como conocer sus parametros
 de entrada/salida.
 
 Por ello, definimos un almacen de funciones/procedimientos que contiene cada una de las funciones y procedimientos del programa.
@@ -294,11 +367,11 @@ public class Subprograma {
                        HashMap<String, Variable> almacenVariables, List<Anasint.Instrucciones_procedimientoContext> instruccionesSubprograma);
 
     // Ejecuta una funcion o procedimiento y devuelve su resultado
-    public Object Execute(HashMap<String, Variable> variablesLocales);
+    public Object Execute(HashMap<String, Variable> variablesLocales, HashMap<String, Subprograma> subprogramas);
 }
 ```
-A su vez, los parametros de una llamada a funcion/procedimiento se encuentran encapsulados
-en una clase *Parametro*.
+A su vez, los parametros de una llamada a función/procedimiento se encuentran encapsulados
+en una clase *Parámetro*.
 
 ```java
 public class Parametro {
@@ -329,11 +402,53 @@ def_proc: PROCEDIMIENTO ident=IDENTIFICADOR INICIO_PARENTESIS entrada=parametros
 // {devolver Subprograma(ident, entrada, vars, instr)}
 ```
 
-#### Decision 4
+#### Decisión 4
+Para poder interpretar un programa es necesario evaluar sus condiciones. Dado que las condiciones contienen expresiones,
+su resolución depende del contexto y será gestionada por la clase *CondicionParser*.
+
+Las comparaciones realizadas siempre deben de realizarse entre expresiones del mismo tipo.
+
+
+**Clase CondicionParser**
+
+```java
+public class CondicionParser extends AnasintBaseVisitor<Object> {
+    private HashMap<String, Variable> almacenVariables;
+    private ExprParser exprParser;
+    private HashMap<String, Subprograma> subprogramas;
+
+    public CondicionParser(HashMap<String, Variable> almacenVariables, HashMap<String, Subprograma> subprogramas);
+}
+```
+
+
+##### Gramática atribuida
+
+```antlrv4
+// (parametro de salida valor)
+condicion_basica: expr1=expr IGUALDAD expr2=expr // {valor=(expr1 == expr2)}
+| expr1=expr DESIGUALDAD expr2=expr // {valor=(expr1 != expr2)}
+| expr1=expr MENOR_QUE expr2=expr // {valor=(expr1 < expr2)}
+| expr1=expr MAYOR_QUE expr2=expr // {valor=(expr1 > expr2)}
+| expr1=expr MAYOR_IGUAL_QUE expr2=expr // {valor=(expr1 >= expr2)}
+| expr1=expr MENOR_IGUAL_QUE expr2=expr // {valor=expr1 <= expr2}
+| CIERTO // {valor=T}
+| FALSO //  {valor=F}
+;
+// (parametro de salida valor)
+condicion_completa: cond1=condicion_completa CONJUNCION cond2=condicion_completa // {valor=(cond1 && cond2)}  
+| cond1=condicion_completa DISYUNCION cond2=condicion_completa // {valor=(cond1 || cond2)}
+| INICIO_PARENTESIS valor=condicion_completa FIN_PARENTESIS
+| NEGACION cond=condicion_completa // {valor=!cond}
+| valor=condicion_basica
+;
+```
+
+#### Decision 5
 Interpretar un programa es interpretar secuencialmente sus instrucciones.
 
-Para analizar las instrucciones definiremos una clase *InstruccionesParser* que se encargara
-de la interpretacion de las instrucciones.
+Para analizar las instrucciones definiremos una clase *InstruccionesParser* que se encargará
+de la interpretación de las instrucciones.
 
 ```java
 public class InstruccionesParser extends AnasintBaseVisitor<Object> {
@@ -350,9 +465,9 @@ public class InstruccionesParser extends AnasintBaseVisitor<Object> {
 }
 ```
 
-Al delegar la interpretacion de las instrucciones a una clase propia, el mismo codigo puede
+Al delegar la interpretación de las instrucciones a una clase propia, el mismo codigo puede
 ser utilizado para interpretar los subprogramas, dado que al instanciar la clase debemos proporcionar
-informacion sobre el contexto a analizar.
+información sobre el contexto sobre el que se interpreta.
 
 ##### Interpretar(asignaciones)
 La instruccion de asignacion actualiza el valor de las variables contenidas en el almacen de variables con el valor de una expresion.
@@ -369,7 +484,7 @@ asignacion: IDENTIFICADOR (COMA IDENTIFICADOR)* IGUAL expr (COMA expr)* PyC
         si hay una sola expresion y es una llamada a funcion entonces
             si parametrosSalidaFuncion.size() es igual a variables.size() entonces
                Se ejecuta la funcion y se actualiza cada variable con su nuevo valor
-    ERROR
+    El cualquier otro caso ERROR
 }
 ```
 
@@ -496,3 +611,5 @@ almacenSubprogramas = {"AskTheUniverse": Subprograma("AskTheUniverse", [Parametr
     ```entrada -> Variable("valor", NUM, 1)```
     2. Modificamos la variable
     ```Variable("valor", NUM, 1).setValor(42)```
+
+##### Interpretar(condicional)
