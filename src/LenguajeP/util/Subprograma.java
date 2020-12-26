@@ -45,6 +45,7 @@ public class Subprograma {
         // Si es funcion hay parametros de salida
         if(this.esFuncion) {
             for(Parametro salida: this.parametrosSalida){
+                if(variablesLocales.containsKey(salida.getIdentificador())) throw new RuntimeException(String.format("Runtime Error: local variable '%s' already exists.", salida.getIdentificador()));
                 variablesLocales.put(salida.getIdentificador(), new Variable(salida.getIdentificador(), salida.getTipo()));
             }
         }

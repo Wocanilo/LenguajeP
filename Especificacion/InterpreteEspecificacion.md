@@ -44,13 +44,15 @@ Cada variable declarada en un programa tiene un tipo **invariable**
 ### Sección SUBPROGRAMAS
 Empieza con la palabra reservada **SUBPROGRAMAS**, seguida de tantas declaraciones de funciones o procedimientos como sean neceasrias.
 
-Los subprogramas solo pueden acceder a las variables definidas en su declaración.
+Los subprogramas solo pueden acceder a sus variables locales o a los parametros pasados en un llamada.
 
 #### Funciones
 Las **funciones** tienen un conjunto (que puede estar vacío) de parámetros de entrada y un conjunto (no vacío) de parámetros de salida.
 Los parámetros de entrada son de solo lectura y los de salida de lectura/escritura.
 
 La funciones deben incluir en algún punto de sus instrucciones un retorno explícito de los parámetros de sálida mediate la instrucción *dev*
+
+Las funciones pueden formar parte de una expresion si solo devuelve un valor.
 
 Ejemplo:
 
@@ -104,9 +106,9 @@ Las instrucciones son:
 - Ruptura de control:
     -  Lleva al programa fuera del bloque en el que está localizada la ruptura.
 - Llamada a procedimiento o función
-- Devolución de resultados de una función
+- Devolución de resultados de una función: interrumpe la ejecucion de una funcion y devuelve los valores especificados
 - Mostrar por consola el valor de variables
-    - Permite mostrar por consola los valores de una lista de variables
+    - Permite mostrar por consola el valor de una expresion
     
 ## Decisiones de diseño
 
@@ -133,13 +135,15 @@ public class Variable {
     private String identificador;
     private Integer tipo;
     private Object valor;
+    private Boolean RW = true; // Por defecto las variables son de lectura/escritura
 
     // Declaración sin valor usada por el analizador semántico
     public Variable(String identificador, Integer tipo);
 
     // Declaración con valor usada por el intérprete
     public Variable(String identificador, Integer tipo, Object valor);
-    
+    public Variable(String identificador, Integer tipo, Object valor, Boolean RW);
+
     /*
     *   No existen metodos que permitan cambiar el identificador ni el tipo de una variable tras su creacion
     */
@@ -394,17 +398,101 @@ asignacion: ident=IDENTIFICADOR (COMA ident=IDENTIFICADOR)* IGUAL exp=expr (COMA
 ```
 
 ##### Interpretar(llamadas)
-Es posible llamar a las funciones/procedimientos directamente. Sin embargo, tan solo la llamadas
-a procedimientos produciran cambios.
+Los subprogramas pueden ser llamados en las siguientes situaciones:
+- Como una instrucción independiente (Solo procedimientos)
+  - Las llamadas a funciones no producen cambios en el estado del programa.
+- Como parte de una expresión (Solo funciones)
+    - En una asignación (Puede devolver múltiples valores).
+    - En cualquier otro caso (Tan solo puede devolver un valor).
 
-Cuando se anidan llamadas a funciones, las funciones anidadas tan solo podran devolver un valor.
+Las llamadas a funciones/procedimientos funcionan de la siguiente forma:
+1. Se comprueba que el subprograma existe
+2. De existir se crea un almacén de variables locales para la función/procedimiento
+3. Se incluyen en el almacén de variables las variables declaradas en la sección VARIABLES del subprograma
+4. Si hay parámetros de entrada se resuelven las expresiones y se añaden los parámetros de entrada con su valor correspondiente.
+    1. Si la expresión es una variable, se almacena la correspondencia entre variable pasada y local (En el caso de procedimientos)
+5. Si hay parámetros de salida se definen en el almacén de variables locales.
+6. Se ejecutan las instrucciones del subprograma
+7. Si es función, se devuelven los valores devueltos por la función
+8. Si es procedimiento, se modifican los valores de las variables pasadas al procedimiento
 
+Una vez terminada la ejecución de una función/procedimiento, el flujo de ejecución continua normalmente. 
+
+**Ejemplo de llamada a funcion**
 ```
-llamada_procedimiento: IDENTIFICADOR INICIO_PARENTESIS (expr (COMA expr)*)? FIN_PARENTESIS
-{
-    Si existe el procedimiento llamar al procedimiento y modificar el valor de las variables pasadas como parametros
-    sino ERROR
-}
+PROGRAMA
+VARIABLES
+    valor:NUM;
+SUBPROGRAMAS
+    FUNCION AskTheUniverse(NUM entrada) dev (NUM salida)
+    VARIABLES
+        j: NUM;
+    INSTRUCCIONES
+        dev 42;
+    FFUNCION
+INSTRUCCIONES
+   valor = 1;
+   AskTheUniverse(valor); <- Asumimos que esta es la siguiente instruccion a interpretar
+```
+*Estado inicial*
+```
+almacenVariables = {"valor": Variable("valor", NUM, 1)}
+almacenSubprogramas = {"AskTheUniverse": Subprograma("AskTheUniverse", [Parametro("entrada", NUM)],
+[Parametro("salida", NUM)], [...])}
 ```
 
+1. Se comprueba si el subprograma existe  
+```¿AskTheUniverse se encuentra en almacenSubprogramas? -> Sí```
+2. Creamos el almacen de variables locales de la funcion  
+```almacenVariablesLocales = {}```
+3. Añadimos al almacen las variables declaradas en la función.   
+```almacenVariablesLocales = {"j": Variable("j", NUM, null)}```
+4. Resolvemos las expresiones.
+```valor -> 1```
+    1. Añadimos los parametros de entrada al almacen local con su valor correspondiente  
+```almacenVariablesLocales = {"j": Variable("j", NUM, null), Variable("entrada", NUM, 1)}```
+    2. Añadimos los parametros de salida al almacen de variables  
+```almacenVariablesLocales = {"j": Variable("j", NUM, null), Variable("entrada", NUM, 1), "salida": Variable("salida", NUM, null)}```
+6. Ejecutamos las instrucciones de la funcion
+7. El valor "42" es devuelto como resultado.
 
+**Ejemplo de llamada a procedimiento**
+```
+PROGRAMA
+VARIABLES
+    valor:NUM;
+SUBPROGRAMAS
+    PROCEDIMIENTO AskTheUniverse(NUM entrada)
+    VARIABLES
+        j: NUM;
+    INSTRUCCIONES
+        entrada = 42;
+    FPROCEDIMIENTO
+INSTRUCCIONES
+   valor = 1;
+   AskTheUniverse(valor); <- Asumimos que esta es la siguiente instruccion a interpretar
+```
+*Estado inicial*
+```
+almacenVariables = {"valor": Variable("valor", NUM, 1)}
+almacenSubprogramas = {"AskTheUniverse": Subprograma("AskTheUniverse", [Parametro("entrada", NUM)], null, [...])}
+```
+
+1. Se comprueba si el subprograma existe  
+   ```¿AskTheUniverse se encuentra en almacenSubprogramas? -> Sí```
+2. Creamos el almacen de variables locales del procedimiento  
+   ```almacenVariablesLocales = {}```
+3. Añadimos al almacen las variables declaradas en el procedimiento.   
+   ```almacenVariablesLocales = {"j": Variable("j", NUM, null)}```
+4. Resolvemos las expresiones.
+   ```valor -> 1```
+    1. Añadimos los parametros de entrada al almacen local con su valor correspondiente  
+       ```almacenVariablesLocales = {"j": Variable("j", NUM, null), Variable("entrada", NUM, 1)}```
+    2. Mantenemos la traduccion entre parametros de entrada y variables pasadas  
+       ```variablesOriginales = {"entrada": Variable("valor", NUM, 1)}```
+5. Ejecutamos las instrucciones del procedimiento.
+6. Modificamos el valor de las variables pasadas como parámetros con el valor del almacen local.
+    1. Traducimos el nombre de la variable local usando el traductor *variablesOriginales*
+    ```entrada -> Variable("valor", NUM, 1)```
+    2. Modificamos la variable
+    ```Variable("valor", NUM, 1).setValor(42)```

@@ -205,7 +205,7 @@ public class ExprParser extends AnasintBaseVisitor<Object> {
             // No hay parametros de entrada, ejecutamos directamente la funcion/procedimiento
             resultado = subprograma.Execute(variablesLocales, this.subprogramas);
         }else{
-            // Debemos resolver las expresiones pasads como parametros
+            // Debemos resolver las expresiones pasadas como parametros
             List<Anasint.ExprContext> expresiones = ctx.expr();
             List<Parametro> parametrosEntrada = subprograma.getParametrosEntrada();
 
@@ -255,11 +255,11 @@ public class ExprParser extends AnasintBaseVisitor<Object> {
                     // Usado por mostrar
                     if(param.getIdentificador() == "*") variableLocal = new Variable(expresion.getText(), param.getTipo(), exprValue);
                     else variableLocal = new Variable(param.getIdentificador(), param.getTipo(), exprValue);
-                }
 
-                if(Variable.class.isInstance(expr)) {
-                    // Como se ha desencapsulado, hay que guardar la referencia a la original para poder cambiar su valor al terminar
-                    salidaOriginal.put(variableLocal, (Variable) expr);
+                    if(Variable.class.isInstance(expr)) {
+                        // Como se ha desencapsulado, hay que guardar la referencia a la original para poder cambiar su valor al terminar
+                        salidaOriginal.put(variableLocal, (Variable) expr);
+                    }
                 }
 
                 variablesLocales.put(param.getIdentificador(), variableLocal);
