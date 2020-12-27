@@ -197,8 +197,8 @@ Para este fin, se creará un almacén de variables, que contendrá el estado de 
 | e             | secuencia_entera   |1,2,3,4|
 | g             | secuencia_booleana |T,T,F,F|
 
-Estas variables seran representadas mediante una clase *Variable* que se encargara de asegurar su correcto tipado
-en tiempo de ejecucion. Asi como de evitar el acceso a variables sin valor definido.
+Estas variables serán representadas mediante una clase *Variable* que se encargara de asegurar su correcto tipado
+en tiempo de ejecución. Así como de evitar el acceso a variables sin valor definido.
 
 ```java
 public class Variable {
@@ -569,7 +569,7 @@ almacenSubprogramas = {"AskTheUniverse": Subprograma("AskTheUniverse", [Parametr
     2. Añadimos los parametros de salida al almacen de variables  
 ```almacenVariablesLocales = {"j": Variable("j", NUM, null), Variable("entrada", NUM, 1), "salida": Variable("salida", NUM, null)}```
 6. Ejecutamos las instrucciones de la funcion
-7. El valor "42" es devuelto como resultado.
+7. El valor `42` es devuelto como resultado.
 
 **Ejemplo de llamada a procedimiento**
 ```
@@ -613,3 +613,124 @@ almacenSubprogramas = {"AskTheUniverse": Subprograma("AskTheUniverse", [Parametr
     ```Variable("valor", NUM, 1).setValor(42)```
 
 ##### Interpretar(condicional)
+Las instrucciones condicionales ejecutan un bloque de código en función de si se cumple una condición o no.
+
+Existen dos tipos de estructuras condicionales:
+- si-fsi `Ejecuta el bloque de código contenido de cumplirse la condición`
+- si-sino-fsi `De no cumplirse la condición ejecuta otro bloque de código`
+
+Su implementación es sencilla:
+1. Se resuelve la condición.
+2. Si la condición es `cierta` se interpreta el primer bloque de código contenido.
+3. Si la condición es `falsa` se interpreta el segundo bloque de código (Caso si-sino-fsi).
+4. Se continúa la interpretación por la siguiente instrucción del programa.
+
+**Ejemplo condicional**
+
+*Se cumple la condición*
+```
+PROGRAMA
+VARIABLES
+    i:NUM;
+SUBPROGRAMAS
+INSTRUCCIONES
+   i = 1;
+   si (i == 1) entonces // La condición es cierta
+        mostrar(i); // Se interpreta el bloque de código
+   sino
+        mostrar(2); // Nunca llega a interpretarse
+   fsi
+   -------------------- Salida --------------------
+   i -> 1
+```
+*No se cumple la condición*
+```
+PROGRAMA
+VARIABLES
+    i:NUM;
+SUBPROGRAMAS
+INSTRUCCIONES
+   i = 1;
+   si (i == 2) entonces // La condición es falsa
+        mostrar(i); // Nunca llega a interpretarse
+   sino
+        mostrar(2); // Se interpreta el bloque de código
+   fsi
+   -------------------- Salida --------------------
+   2 -> 2
+```
+
+##### Interpretar(iteración)
+Las instrucciones iterativas permiten repetir la interpretación de un bloque de código mientras
+se cumpla una condición.
+
+Su implementación es la siguiente:
+
+1. Se resuelve la condición, de ser cierta el programa entra en un bucle
+    1. Se interpretan las instrucciones del bloque de código
+    2. Se resuelve la condición, de ser cierta continua el bucle.
+2. De ser falsa la condición, se continúa la interpretación por la siguiente instrucción del programa.    
+
+**Ejemplo de iteración**
+```
+PROGRAMA
+VARIABLES
+    i:NUM;
+SUBPROGRAMAS
+INSTRUCCIONES
+   i = 1;
+   mientras(i < 5) hacer
+       mostrar(i);
+       i = i + 1;
+   fmientras
+   -------------------- Salida --------------------
+    i -> 1
+    i -> 2
+    i -> 3
+    i -> 4
+```
+##### Interpretar(devolución)
+La instrucción de devolución es usada en las funciones para indicar los valores que deben ser devueltos por la función.
+
+Esta instrucción provoca el fin de la interpretación de las instrucciones de la función.
+
+**Ejemplo devolución**
+```
+PROGRAMA
+VARIABLES
+    valor:NUM;
+SUBPROGRAMAS
+    FUNCION AskTheUniverse() dev (NUM salida)
+    VARIABLES
+    INSTRUCCIONES
+        dev 42; // La función devuelve el valor 42
+    FFUNCION
+INSTRUCCIONES
+   valor = AskTheUniverse(); <- la llamada a la función se resuelve al valor '42'
+```
+
+##### Intepretar(ruptura)
+La instrucción de ruptura provoca que el programa abandone el bloque de código en el que se encuentra la instrucción.
+
+**Ejemplo ruptura**
+```
+PROGRAMA
+VARIABLES
+    i:NUM;
+SUBPROGRAMAS
+INSTRUCCIONES
+    i = 1;
+    mientras(10 > i) hacer
+        mostrar(i);
+        i = i + 1;
+        ruptura; // Termina la ejecución del bloque
+    fmientras
+    mostrar(i);
+----- Salida -----
+i -> 1
+i -> 1
+```
+
+##### Intepretar(mostrar resultados por consola)
+A efectos prácticos consideraremos que se trata de un procedimiento, por lo que no recibe un tratamiento especial
+por parte del intérprete.
