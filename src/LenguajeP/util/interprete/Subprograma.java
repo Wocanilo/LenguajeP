@@ -1,8 +1,7 @@
-package LenguajeP.util;
+package LenguajeP.util.interprete;
 
 import LenguajeP.Antlr.Anasint;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
@@ -56,16 +55,31 @@ public class Subprograma {
         if(this.esFuncion){
             // Es una funcion
             for(Anasint.Instrucciones_funcionContext instruccion: (List<Anasint.Instrucciones_funcionContext>) this.instruccionesSubprograma){
+                List<Object> valoresDev = null;
+                Boolean esDevolver = false;
+
+                // Comprobamos que la instruccion no sea un dev
                 if(instruccion.devolver() != null){
-                    List<Object> valoresDev = (List<Object>) instruccionesParser.visit(instruccion);
+                    valoresDev = (List<Object>) instruccionesParser.visit(instruccion);
+                    esDevolver = true;
+                }else{
+                    // Puede devolver un valor si se ejecuta un dev dentro de un condicional o un iterativo
+                    Object valor = instruccionesParser.visit(instruccion);
 
+                    if(List.class.isInstance(valor)){
+                        // Solo los dev devuelven listas
+                        valoresDev = (List<Object>) valor;
+                        esDevolver = true;
+                    }
+                }
+
+                if(esDevolver){
                     // Comprobamos el numero de los valores devueltos
-                    if(valoresDev.size() != this.parametrosSalida.size()) throw new RuntimeException(String.format("Runtime Error: invalid number of return values in '%s'",
+                    if(valoresDev != null && valoresDev.size() != this.parametrosSalida.size()) throw new RuntimeException(String.format("Runtime Error: invalid number of return values in '%s'",
                             this.getIdentificador()));
-
+                    // Fin de la ejecucion
                     return valoresDev;
                 }
-                instruccionesParser.visit(instruccion);
             }
         }else{
             // Es un procedimiento
@@ -74,7 +88,8 @@ public class Subprograma {
             HashMap<String, Variable> salida = new HashMap<>();
 
             for(Anasint.Instrucciones_procedimientoContext instruccion: (List<Anasint.Instrucciones_procedimientoContext>) this.instruccionesSubprograma){
-                instruccionesParser.visit(instruccion);
+                Object valor = instruccionesParser.visit(instruccion);
+                if(List.class.isInstance(valor)) throw new RuntimeException("Runtime Error: ilegal use of dev in procedure."); // Se ha llamado a dev en un procedimiento
             }
             // Al ser un procedimiento, la salida seran los valores actuales de los parametros de entrada
             for(Parametro var: this.parametrosEntrada){

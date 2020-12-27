@@ -80,17 +80,21 @@ condicion_completa: condicion_completa CONJUNCION condicion_completa
 condicional: SI INICIO_PARENTESIS condicion_completa FIN_PARENTESIS ENTONCES instruccion_condicionalSi+ (SINO (instruccion_condicionalSino)+)? FSI;
 instruccion_condicionalSi: instruccion
                          | ruptura
+                         | devolver
                          ;
 
 instruccion_condicionalSino: instruccion
                            | ruptura
+                           | devolver
                            ;
 
 // Estructura iterativa mientras-hacer-fmientras
 ruptura: RUPTURA PyC;
 iteracion: MIENTRAS INICIO_PARENTESIS condicion_completa FIN_PARENTESIS HACER instruccion_iteracion+ FMIENTRAS;
 instruccion_iteracion: instruccion
-                     | ruptura;
+                     | ruptura
+                     | devolver
+                     ;
 
 instruccion: (asignacion|condicional|iteracion|(llamada_func_proc PyC));
 

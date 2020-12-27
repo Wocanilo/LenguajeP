@@ -2,10 +2,10 @@ package LenguajeP;
 
 import LenguajeP.Antlr.Anasint;
 import LenguajeP.Antlr.AnasintBaseVisitor;
-import LenguajeP.util.*;
-import LenguajeP.util.subprograma.Mostrar;
-import LenguajeP.util.subprograma.Ultima_Posicion;
-import LenguajeP.util.subprograma.Vacia;
+import LenguajeP.util.interprete.*;
+import LenguajeP.util.interprete.subprograma.Mostrar;
+import LenguajeP.util.interprete.subprograma.Ultima_Posicion;
+import LenguajeP.util.interprete.subprograma.Vacia;
 
 import java.util.HashMap;
 

@@ -1,13 +1,12 @@
-package LenguajeP.util.subprograma;
+package LenguajeP.util.interprete.subprograma;
 
 import LenguajeP.Antlr.Anasint;
-import LenguajeP.util.Parametro;
-import LenguajeP.util.Subprograma;
-import LenguajeP.util.Variable;
+import LenguajeP.util.interprete.Parametro;
+import LenguajeP.util.interprete.Subprograma;
+import LenguajeP.util.interprete.Variable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
 public class Mostrar extends Subprograma {
     public Mostrar(){

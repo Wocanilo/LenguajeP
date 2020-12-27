@@ -1,4 +1,4 @@
-package LenguajeP.util;
+package LenguajeP.util.interprete;
 
 import java.util.Objects;
 

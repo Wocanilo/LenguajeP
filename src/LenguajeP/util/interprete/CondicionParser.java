@@ -1,4 +1,4 @@
-package LenguajeP.util;
+package LenguajeP.util.interprete;
 
 import LenguajeP.Antlr.Anasint;
 import LenguajeP.Antlr.AnasintBaseVisitor;

@@ -1,4 +1,4 @@
-package LenguajeP.util;
+package LenguajeP.util.interprete;
 
 import LenguajeP.Antlr.Anasint;
 import LenguajeP.Antlr.AnasintBaseVisitor;
@@ -34,6 +34,23 @@ public class ExprParser extends AnasintBaseVisitor<Object> {
         Integer valorOperadorIzq;
         Integer valorOperadorDer;
 
+        // Puede tratarse de una llamada a funcion
+        if(List.class.isInstance(operadorIzq)){
+            List<Object> listaIzq = (List<Object>) operadorIzq;
+
+            if(listaIzq.size() != 1) throw new RuntimeException(String.format("Runtime Error: functions can only return one value when used in arithmetic operations. '%s'", ctx.expr_entera(0).getText()));
+
+            operadorIzq = listaIzq.get(0);
+        }
+
+        if(List.class.isInstance(operadorDer)){
+            List<Object> listaDer = (List<Object>) operadorDer;
+
+            if(listaDer.size() != 1) throw new RuntimeException(String.format("Runtime Error: functions can only return one value when used in arithmetic operations. '%s'", ctx.expr_entera(1).getText()));
+
+            operadorDer = listaDer.get(0);
+        }
+
         // Debemos comprobar si se trata de un tipo basico o una variable
         if(Variable.class.isInstance(operadorIzq)){
             // Comprobamos que se trata de una operacion legal
@@ -41,6 +58,7 @@ public class ExprParser extends AnasintBaseVisitor<Object> {
                     ((Variable)operadorIzq).getIdentificador()));
             // Debemos obtener el valor de la variable.
             valorOperadorIzq = (Integer) ((Variable) operadorIzq).getValor();
+
         }else{
             valorOperadorIzq = (Integer) operadorIzq;
         }

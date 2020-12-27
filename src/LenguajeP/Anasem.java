@@ -3,7 +3,7 @@ package LenguajeP;
 import LenguajeP.Antlr.Anasint;
 import LenguajeP.Antlr.AnasintBaseVisitor;
 import org.antlr.v4.runtime.tree.TerminalNode;
-import LenguajeP.util.Variable;
+import LenguajeP.util.interprete.Variable;
 
 import java.util.*;
 

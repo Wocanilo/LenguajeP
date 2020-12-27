@@ -1,4 +1,4 @@
-package LenguajeP.util;
+package LenguajeP.util.interprete;
 
 import LenguajeP.Antlr.Anasint;
 import LenguajeP.Antlr.AnasintBaseVisitor;
@@ -94,7 +94,12 @@ public class InstruccionesParser extends AnasintBaseVisitor<Object> {
         List<Object> res = new ArrayList<>();
 
         for(Anasint.ExprContext expr: ctx.expr()){
-            res.add(this.exprParser.visit(expr));
+            if(expr.expr_entera() != null && expr.expr_entera().llamada_func_proc() != null){
+                // Se trata de funciones anidadas. No debemos volver a meter los resultados en una lista
+                res.addAll((List<Object>) this.exprParser.visit(expr));
+            }else{
+                res.add(this.exprParser.visit(expr));
+            }
         }
 
         return res;
@@ -108,6 +113,7 @@ public class InstruccionesParser extends AnasintBaseVisitor<Object> {
             // Ejecutamos las instrucciones contenidas
             for(Anasint.Instruccion_condicionalSiContext instruccion: ctx.instruccion_condicionalSi()){
                 if(instruccion.ruptura() != null) return Anasint.RUPTURA;
+                if(instruccion.devolver() != null) return visit(instruccion.devolver()); // Solo valido en funciones
                 visit(instruccion.instruccion());
             }
         }else{
@@ -116,6 +122,7 @@ public class InstruccionesParser extends AnasintBaseVisitor<Object> {
                 // Ejecutamos sus instrucciones
                 for(Anasint.Instruccion_condicionalSinoContext instruccion: ctx.instruccion_condicionalSino()){
                     if(instruccion.ruptura() != null) return Anasint.RUPTURA;;
+                    if(instruccion.devolver() != null) return visit(instruccion.devolver()); // Solo valido en funciones
                     visit(instruccion.instruccion());
                 }
             }
@@ -164,7 +171,10 @@ public class InstruccionesParser extends AnasintBaseVisitor<Object> {
         // Se estan ejecutando instrucciones del programa principal
 
         for(Anasint.InstruccionContext instruccion: ctx.instruccion()){
-            visit(instruccion);
+            Object valor = visit(instruccion);
+
+            if(List.class.isInstance(valor)) throw new RuntimeException("Runtime Error: ilegal use of dev in main program."); // Se ha llamado a dev en el programa principal
+
         }
         return null;
     }

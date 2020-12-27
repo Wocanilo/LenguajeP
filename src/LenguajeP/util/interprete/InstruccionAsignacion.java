@@ -1,4 +1,4 @@
-package LenguajeP.util;
+package LenguajeP.util.interprete;
 
 import LenguajeP.Antlr.Anasint;
 import org.antlr.v4.runtime.tree.TerminalNode;
