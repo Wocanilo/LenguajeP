@@ -474,6 +474,9 @@ La instruccion de asignacion actualiza el valor de las variables contenidas en e
 
 Esta asignacion puede ser simple, cuando se trata de una sola variable, o multiple, cuando se trata de varias.
 
+Las asignaciones permiten modificar el valor de los elementos de una secuencia. Si se utiliza un índice una unidad mayor al último elemento, el valor se añadirá a la lista.
+No es posible reducir el tamaño de una lista.
+
 ```
 asignacion: IDENTIFICADOR (COMA IDENTIFICADOR)* IGUAL expr (COMA expr)* PyC
 {

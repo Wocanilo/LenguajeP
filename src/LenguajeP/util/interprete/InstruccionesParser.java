@@ -35,10 +35,10 @@ public class InstruccionesParser extends AnasintBaseVisitor<Object> {
     @Override
     public Object visitAsignacion(Anasint.AsignacionContext ctx){
         List<Object> valoresExpresiones = new ArrayList<>();
-        List<TerminalNode> identificadores = ctx.getTokens(Anasint.IDENTIFICADOR);
+        List<Anasint.Identificador_O_AccesoContext> identificadoresOAccesos = ctx.identificador_O_Acceso();
 
         // Comprobamos que coincida el numero de expresiones y de identificadores
-        if(ctx.expr().size() != identificadores.size()){
+        if(ctx.expr().size() != identificadoresOAccesos.size()){
             // Si la expresion es una funcion puede ser valida
             if(ctx.expr().size() == 1 && this.esFuncion(ctx.expr(0))){
                 // Comprobamos que coincida el numero de variables de la asignacion con el numero de variables devueltas por la funcion
@@ -49,7 +49,7 @@ public class InstruccionesParser extends AnasintBaseVisitor<Object> {
 
                 if(subprograma == null) throw new RuntimeException(String.format("Runtime Error: tried to call an undefined function/proc '%s'", identificador));
 
-                if(identificadores.size() != subprograma.parametrosSalida.size()) throw new RuntimeException(String.format("Runtime Error: Invalid number of expressions and identifiers in an assignment. '%s'",
+                if(identificadoresOAccesos.size() != subprograma.parametrosSalida.size()) throw new RuntimeException(String.format("Runtime Error: Invalid number of expressions and identifiers in an assignment. '%s'",
                         ctx.getText()));
             }else{
                 throw new RuntimeException(String.format("Runtime Error: Invalid number of expressions and identifiers in an assignment. '%s'",
@@ -70,20 +70,60 @@ public class InstruccionesParser extends AnasintBaseVisitor<Object> {
         }
 
         // A cada variable le asignamos su nuevo valor.
-        for(int i=0; i<identificadores.size(); i++){
-            String identificador = identificadores.get(i).getText();
+        for(int i=0; i<identificadoresOAccesos.size(); i++){
 
-            if(!this.almacenVariables.containsKey(identificador)) System.out.println("INTERPRETE ERROR: Se ha tratado de acceder a una variable no definida");
+            // Comprobamos si se trata de una secuencia o no
+            Anasint.Identificador_O_AccesoContext var = identificadoresOAccesos.get(i);
+            String identificador = null;
+
+            if(var.IDENTIFICADOR() != null) identificador = var.getText();
+            else identificador = var.acceso_secuencia().IDENTIFICADOR().getText();
+
+            if(!this.almacenVariables.containsKey(identificador)) throw new RuntimeException(String.format("Runtime Error: tried to access undefined variable '%s'.", identificador));
             Variable variable = this.almacenVariables.get(identificador);
 
-            // No es necesario volver a almacenarlo ya que se trata de una referencia
-            Object valorExpr = valoresExpresiones.get(i);
-            // Desencapsulamos las variables
-            if(Variable.class.isInstance(valorExpr)){
-                valorExpr = ((Variable)valorExpr).getValor();
-            }
+            if(var.acceso_secuencia() != null){
+                // Resolvemos el indice del acceso
+                Object exprValue = this.exprParser.visit(var.acceso_secuencia().expr_entera());
+                Integer indice = null;
 
-            variable.setValor(valorExpr);
+                // Puede ser una llamada a funcion
+                if(List.class.isInstance(exprValue)){
+                    List<Object> exprList = (List<Object>) exprValue;
+                    if(exprList.size() > 1) throw new RuntimeException("Runtime Error: functions in expressions can only return one value.");
+                    exprValue = exprList.get(0);
+                }
+
+                // Puede ser una variable
+                if(Variable.class.isInstance(exprValue)) exprValue = ((Variable)exprValue).getValor();
+                // Comprobamos que sea un entero
+                if(Integer.class.isInstance(exprValue)) indice = (Integer) exprValue;
+                else throw new RuntimeException("Runtime Error: secuence indexes can only be numeric values.");
+
+                //Obtenemos nuevo valor
+                Object valorExpr = valoresExpresiones.get(i);
+                // Desencapsulamos las variables
+                if(Variable.class.isInstance(valorExpr)){
+                    valorExpr = ((Variable)valorExpr).getValor();
+                }
+
+                // Modificamos la lista
+                List<Object> listaVariable = (List<Object>) variable.getValor();
+                // Comprobamos si el indice existe
+                if(indice < listaVariable.size()) listaVariable.set(indice, valorExpr);
+                else if(listaVariable.size() == indice) listaVariable.add(valorExpr); // Si es justo uno mas ampliamos la lista
+                else throw new RuntimeException(String.format("Runtime Error: index out of bounds. '%s'", var.acceso_secuencia().getText()));
+
+                // Al ser una lista el valor se modifica directamente en la variable
+            }else{
+                //Obtenemos nuevo valor
+                Object valorExpr = valoresExpresiones.get(i);
+                // Desencapsulamos las variables
+                if(Variable.class.isInstance(valorExpr)){
+                    valorExpr = ((Variable)valorExpr).getValor();
+                }
+                variable.setValor(valorExpr);
+            }
         }
 
         return null;
