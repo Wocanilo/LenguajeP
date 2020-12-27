@@ -98,7 +98,7 @@ instruccion_iteracion: instruccion
 
 instruccion: (asignacion|condicional|iteracion|(llamada_func_proc PyC));
 
-instrucciones_programa: INSTRUCCIONES instruccion+; // Los programas con 0 instrucciones no son correctos
+instrucciones_programa: INSTRUCCIONES instruccion*;
 
 // Seccion de subprogramas. Se ha separado la definicion de parametros para facilitar su parseo
 parametro: tipo IDENTIFICADOR;
