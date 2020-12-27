@@ -7,6 +7,9 @@ import LenguajeP.util.interprete.Variable;
 
 import java.util.*;
 
+
+// Reflejar cambios de Anasint
+// Entre ellos, se permite el modificar el valor de un elemento de una lista
 public class Anasem extends AnasintBaseVisitor<Object> {
     // Almacena el tipo de cada variable
     private final HashMap<String, HashMap<String, Integer>> tipoVariables = new HashMap<>();
@@ -507,8 +510,12 @@ public class Anasem extends AnasintBaseVisitor<Object> {
     //    si calculaTipoVariable(ident) es igual a tipo expr devolver tipo
     //    sino devolver no_tipo
     // )
-    private Integer calculaTipoAsignacion(String identificador, Anasint.ExprContext expr){
+    private Integer calculaTipoAsignacion(String identificador, Anasint.ExprContext expr, Boolean esAccesoSecuencia){
         Integer tipoVariable = this.calculaTipoVariable(identificador);
+        // Si se trata de un acceso a secuencia lo tratamos como un tipo basico
+        if(tipoVariable == Anasint.SEQ_NUM && esAccesoSecuencia) tipoVariable = Anasint.NUM;
+        if(tipoVariable == Anasint.SEQ_LOG && esAccesoSecuencia) tipoVariable = Anasint.LOG;
+
         Integer tipoExpr = (Integer) visit(expr);
 
         if(tipoVariable == Anasint.NO_TIPO || tipoExpr == Anasint.NO_TIPO){
@@ -525,8 +532,11 @@ public class Anasem extends AnasintBaseVisitor<Object> {
                 return tipoVariable;
             }
 
-            System.out.println(String.format("ERROR: Los tipos de la asignación no coinciden. Se trató de asignar a la variable '%s' con tipo '%s' " +
+            if(esAccesoSecuencia) System.out.println(String.format("ERROR: Los tipos de la asignación no coinciden. Se trató de asignar a un elemento de '%s' de tipo '%s' " +
                     "el valor de la expresión '%s' de tipo '%s'", identificador, this.idToString(tipoVariable), expr.getText(), this.idToString(tipoExpr)));
+            else System.out.println(String.format("ERROR: Los tipos de la asignación no coinciden. Se trató de asignar a la variable '%s' con tipo '%s' " +
+                    "el valor de la expresión '%s' de tipo '%s'", identificador, this.idToString(tipoVariable), expr.getText(), this.idToString(tipoExpr)));
+
             return Anasint.NO_TIPO;
         }
 
@@ -540,11 +550,12 @@ public class Anasem extends AnasintBaseVisitor<Object> {
         else return false;
     }
 
-    // asignacion: ident=IDENTIFICADOR (COMA ident=IDENTIFICADOR)* IGUAL tipo=expr (COMA tipo=expr)* PyC;
-    // {por cada pareja ident,expr calculaTipoAsignacion(ident, expr), si son impares ERROR}
+    // asignacion: (ident=IDENTIFICADOR|tipo=acceso_secuencia) (COMA (ident=IDENTIFICADOR|tipo=acceso_secuencia))* IGUAL expr (COMA expr)* PyC;
+    // {por cada pareja ident,expr calculaTipoAsignacion(ident, expr), si son impares ERROR, si varios ident
+    // y una sola expr comprobar si es funcion y los tipos coinciden sino ERROR. Si es acceso_secuencia devolver tipo de la secuencia (si existe)}
     @Override
     public Object visitAsignacion(Anasint.AsignacionContext ctx){
-        List<TerminalNode> variablesAsignacion = ctx.getTokens(Anasint.IDENTIFICADOR);
+        List<Anasint.Identificador_O_AccesoContext> variablesAsignacion = ctx.identificador_O_Acceso();
         List<Anasint.ExprContext> expresionesAsignacion = ctx.expr();
 
         // Si hay varias variables y una sola expresion puede tratarse de una llamada a funcion
@@ -583,7 +594,10 @@ public class Anasem extends AnasintBaseVisitor<Object> {
             else{
                 // Comprobamos el tipado de cada pareja de la asignacion
                 for(int i=0; i<expresionesAsignacion.size(); i++){
-                    this.calculaTipoAsignacion(variablesAsignacion.get(i).getText(), expresionesAsignacion.get(i));
+                    Anasint.Identificador_O_AccesoContext var = variablesAsignacion.get(i);
+
+                    if(var.IDENTIFICADOR() != null) this.calculaTipoAsignacion(var.getText(), expresionesAsignacion.get(i), false);
+                    else this.calculaTipoAsignacion(var.acceso_secuencia().IDENTIFICADOR().getText(), expresionesAsignacion.get(i), true);
                 }
             }
         }

@@ -363,9 +363,9 @@ expr: tipo=expr_entera
     | tipo=expr_secuencia
     ;
 
-asignacion: ident=IDENTIFICADOR (COMA ident=IDENTIFICADOR)* IGUAL tipo=expr (COMA tipo=expr)* PyC;
+asignacion: (ident=IDENTIFICADOR|tipo=acceso_secuencia) (COMA (ident=IDENTIFICADOR|tipo=acceso_secuencia))* IGUAL expr (COMA expr)* PyC;
 {por cada pareja ident,expr calculaTipoAsignacion(ident, expr), si son impares ERROR, si varios ident
-y una sola expr comprobar si es funcion y los tipos coinciden sino ERROR}
+y una sola expr comprobar si es funcion y los tipos coinciden sino ERROR. Si es acceso_secuencia devolver tipo de la secuencia (si existe)}
 
 (funcion calculaTipoAsignacion(ident, expr)
 si calculaTipoVariable(ident) es no_tipo entonces devolver no_tipo

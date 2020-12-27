@@ -54,8 +54,12 @@ expr: expr_entera
     | expr_secuencia
     ;
 
-// La asignacion de variables puede ser simple o multiple.
-asignacion: IDENTIFICADOR (COMA IDENTIFICADOR)* IGUAL expr (COMA expr)* PyC;
+// La asignacion de variables puede ser simple o multiple. Se permite modificar elementos de una secuencia
+asignacion: identificador_O_Acceso (COMA identificador_O_Acceso)* IGUAL expr (COMA expr)* PyC;
+
+identificador_O_Acceso: IDENTIFICADOR
+                      |acceso_secuencia
+                      ;
 
 // P es un lenguaje fuertemente tipado, no se permite "mezclar" tipos en las condiciones. Es necesario comprobar el tipo
 condicion_basica: expr IGUALDAD expr
