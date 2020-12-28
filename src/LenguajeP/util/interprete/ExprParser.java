@@ -101,7 +101,7 @@ public class ExprParser extends AnasintBaseVisitor<Object> {
                 Object expr = visit(ctx.expr_entera(0));
 
                 // Se trata de una expr en parentesis
-                if(ctx.MENOS() != null){
+                if(ctx.MENOS() != null && ctx.MENOS().size() > 0){
                     // Debemos negar el resultado
                     Boolean eraLista = false; // Indica si se ha desencapsulado una lista
                     Variable varOriginal = null; // Referencia a variable desencapsulada

@@ -30,7 +30,18 @@ public class InstruccionesParser extends AnasintBaseVisitor<Object> {
     private Boolean esFuncion(Anasint.ExprContext ctx){
         if(ctx.expr_entera() != null && ctx.expr_entera().llamada_func_proc() != null) return true;
         // Puede ser una funcion dentro de parentesis
-        if(ctx.expr_entera() != null && ctx.expr_entera().expr_entera() != null && ctx.expr_entera().expr_entera().size() == 1 && ctx.expr_entera().expr_entera(0).llamada_func_proc() != null) return true;
+        if(ctx.expr_entera() != null && ctx.expr_entera().expr_entera() != null){
+            Anasint.Expr_enteraContext current = ctx.expr_entera();
+            // Debemos comprobar si es una llamada a funcion, sin importar la profundidad a la que se encuentre
+            while(true){
+                if(current.llamada_func_proc() != null) return true;
+                if(current.expr_entera() != null && current.expr_entera().size() == 1){
+                    current = current.expr_entera(0);
+                }else{
+                    return false;
+                }
+            }
+        }
         else return false;
     }
 
@@ -42,11 +53,26 @@ public class InstruccionesParser extends AnasintBaseVisitor<Object> {
         // Comprobamos que coincida el numero de expresiones y de identificadores
         if(ctx.expr().size() != identificadoresOAccesos.size()){
             // Si la expresion es una funcion puede ser valida
-            //TODO: falla si la llamada a la funcion esta entre parentesis
             if( ctx.expr().size() == 1 && this.esFuncion(ctx.expr(0))){
                 // Comprobamos que coincida el numero de variables de la asignacion con el numero de variables devueltas por la funcion
                 Subprograma subprograma = null;
-                String identificador = ctx.expr(0).expr_entera().llamada_func_proc().getStart().getText();
+                String identificador = null;
+
+                if(ctx.expr(0).expr_entera().llamada_func_proc() != null){
+                    identificador = ctx.expr(0).expr_entera().llamada_func_proc().getStart().getText();
+                }else{
+                    Anasint.Expr_enteraContext current = ctx.expr(0).expr_entera();
+                    // Debemos obtener el identificador, sin importar la profundidad a la que se encuentre
+                    while(identificador == null){
+                        if(current.llamada_func_proc() != null) {
+                            identificador = current.llamada_func_proc().IDENTIFICADOR().getText();
+                            break;
+                        }
+                        if(current.expr_entera() != null && current.expr_entera().size() == 1){
+                            current = current.expr_entera(0);
+                        }
+                    }
+                }
 
                 subprograma = subprogramas.getOrDefault(identificador, null);
 
