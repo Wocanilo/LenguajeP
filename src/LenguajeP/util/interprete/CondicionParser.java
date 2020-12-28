@@ -67,19 +67,42 @@ public class CondicionParser extends AnasintBaseVisitor<Object> {
     //  | expr1=expr MAYOR_QUE expr2=expr // {valor=(expr1 > expr2)}
     //  | expr1=expr MAYOR_IGUAL_QUE expr2=expr // {valor=(expr1 >= expr2)}
     //  | expr1=expr MENOR_IGUAL_QUE expr2=expr // {valor=expr1 <= expr2}
+    //  | expr1=expr {valor=expr1}
     //  | CIERTO // {valor=T}
     //  | FALSO //  {valor=F}
     //  ;
     @Override
     public Object visitCondicion_basica(Anasint.Condicion_basicaContext ctx){
         // Si hay mas de una expresion se trata de una operacion booleana
-        if(ctx.expr().size() == 0){
-            if(ctx.getTokens(Anasint.CIERTO).size() == 1){
+        if(ctx.expr().size() == 0) {
+            if (ctx.getTokens(Anasint.CIERTO).size() == 1) {
                 return Boolean.TRUE;
-            }else{
+            } else {
                 return Boolean.FALSE;
             }
-        }else{
+        }
+       if(ctx.expr().size() == 1){
+           // Se trata de una unica expresion
+           Object expr1 = this.exprParser.visit(ctx.expr(0));
+
+           // Si hay llamada a funcion desencapsulamos la variable devuelta
+           if(List.class.isInstance(expr1)){
+               // Comprobamos que la llamada devuelva un solo valor
+               if(((List<Variable>)expr1).size() > 1) throw new RuntimeException(String.format("Runtime Error: only functions that return one value can be called in conditions. '%s'.", ctx.expr(0).getText()));
+               expr1 = ((List<Variable>)expr1).get(0);
+           }
+
+           // Desencapsulamos las variables
+           if(Variable.class.isInstance(expr1)){
+               expr1 = ((Variable)expr1).getValor();
+           }
+
+           // Comprobamos que sea un booleano
+           if(Boolean.class.isInstance(expr1)) return (Boolean) expr1;
+
+           throw new RuntimeException(String.format("Runtime Error: functions in conditions must return one LOG value", ctx.expr(0).getText()));
+
+       } else{
             // Hay que calcular las expresiones y realizar las comparaciones
             Object expr1 = this.exprParser.visit(ctx.expr(0));
             Object expr2 = this.exprParser.visit(ctx.expr(1));

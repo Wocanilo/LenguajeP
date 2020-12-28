@@ -34,6 +34,8 @@ public class ExprParser extends AnasintBaseVisitor<Object> {
         Integer valorOperadorIzq;
         Integer valorOperadorDer;
 
+        if(operadorIzq == null || operadorDer == null) throw new RuntimeException("Runtime Error: expresion resolved to null in calculaOPAritmetica.");
+
         // Puede tratarse de una llamada a funcion
         if(List.class.isInstance(operadorIzq)){
             List<Object> listaIzq = (List<Object>) operadorIzq;
@@ -87,6 +89,7 @@ public class ExprParser extends AnasintBaseVisitor<Object> {
     //            | INICIO_PARENTESIS valor=expr_entera FIN_PARENTESIS
     //            | ident=IDENTIFICADOR {valor=getVariable(ident)}
     //            | ENTERO {valor=entero)
+    //            | MENOS expr_entera // Permite usar numeros negativos
     //            | acceso_secuencia {tipo=valorAccesoSecuencia(acceso_secuencia)}
     //            | llamada_func_proc {valor=ejecutaFuncion(llamada_func_proc)}
     //            ;
@@ -95,8 +98,53 @@ public class ExprParser extends AnasintBaseVisitor<Object> {
         if(!ctx.expr_entera().isEmpty()) {
             // Si hay expresiones enteras dentro no es caso base
             if(ctx.expr_entera().size() == 1){
+                Object expr = visit(ctx.expr_entera(0));
+
                 // Se trata de una expr en parentesis
-                return visit(ctx.expr_entera(0));
+                if(ctx.MENOS() != null){
+                    // Debemos negar el resultado
+                    Boolean eraLista = false; // Indica si se ha desencapsulado una lista
+                    Variable varOriginal = null; // Referencia a variable desencapsulada
+
+                    if(expr != null && List.class.isInstance(expr)) {
+                        if(((List<Object>) expr).size() > 1) throw new RuntimeException("Runtime Error: functions call in expresions can only return one value.");
+
+                        expr = ((List<Object>) expr).get(0);
+                        eraLista = true;
+                    }
+
+                    // Si es variable desencapsulamos
+                    if(expr != null && Variable.class.isInstance(expr)) {
+                        System.out.println(varOriginal);
+                        varOriginal = (Variable)expr;
+                        expr = ((Variable)expr).getValor();
+                    }
+
+                    // Si no es entero ERROR
+                    Integer negaciones = ctx.MENOS().size(); // Necesario para calcular signo final
+                    if(expr != null && Integer.class.isInstance(expr)) {
+                        Object res = null;
+                        if(negaciones % 2 == 0) res = ((Integer)expr);
+                        else res = -((Integer)expr);
+
+                        if(varOriginal != null){
+                            // La variable puede ser de solo lectura, al venir de una funcion
+                            res = new Variable(varOriginal.getIdentificador(), varOriginal.getTipo(), res);
+                        }
+
+                        if(eraLista){
+                            List<Object> resLista = new ArrayList<>();
+                            resLista.add(res);
+                            res = resLista;
+                        }
+
+                        return res;
+                    }
+
+                    throw new RuntimeException("Runtime Error: only numbers can be negative.");
+                }
+
+                return expr;
             }else{
                 // Se trata de una operacion aritmetica
                 return calculaOPAritmetica(ctx);
@@ -125,11 +173,84 @@ public class ExprParser extends AnasintBaseVisitor<Object> {
                         // Es una variable, obtenemos su valor
                         return getVariable(ctx.getStart().getText());
                     }
+                case Anasint.MENOS:
+                    // Expresion negativa
+                    //System.out.println(ctx.getText());
+                    Boolean esPositivo = ctx.MENOS().size() % 2 == 0; // Necesario para calcular signo final
+                    if(ctx.ENTERO() != null) {
+                        if(esPositivo) return Integer.parseInt(ctx.ENTERO().getText());
+                        else return -Integer.parseInt(ctx.ENTERO().getText());
+                    }
+                    // Llamada a una funcion
+                    if(ctx.llamada_func_proc() != null) {
+                        Object expr = visit(ctx.llamada_func_proc());
+                        Boolean eraLista = false; // Indica si se ha desencapsulado una lista
+                        Variable varOriginal = null; // Referencia a variable desencapsulada
+
+                        // Si era llamada a funcion desencapsulamos el valor
+                        if(expr != null && List.class.isInstance(expr)) {
+                            if(((List<Object>) expr).size() > 1) throw new RuntimeException("Runtime Error: functions call in expresions can only return one value.");
+
+                            expr = ((List<Object>) expr).get(0);
+                            eraLista = true;
+                        }
+
+                        // Si es variable desencapsulamos
+                        if(expr != null && Variable.class.isInstance(expr)) {
+                            varOriginal = (Variable)expr;
+                            expr = ((Variable)expr).getValor();
+                        }
+
+                        // Si no es entero ERROR
+                        if(expr != null && Integer.class.isInstance(expr)) {
+                            Object res = null;
+                            if(esPositivo) res = ((Integer)expr);
+                            else res = -((Integer)expr);
+
+                            if(varOriginal != null){
+                                // La variable puede ser de solo lectura, al venir de una funcion
+                                res = new Variable(varOriginal.getIdentificador(), varOriginal.getTipo(), res);
+                            }
+
+                            if(eraLista){
+                                List<Object> resLista = new ArrayList<>();
+                                resLista.add(res);
+                                res = resLista;
+                            }
+
+                            return res;
+                        }
+
+                        throw new RuntimeException("Runtime Error: only numbers can be negative.");
+                    }
+
+                    if(ctx.IDENTIFICADOR() != null){
+                        Variable var = getVariable(ctx.IDENTIFICADOR().getText());
+                        // Comprobamos su tipo
+                        if(var.getTipo() == Anasint.NUM){
+                            if(esPositivo) return var;
+
+                            var.setValor(-((Integer)var.getValor()));
+                            return var;
+                        }
+                        throw new RuntimeException(String.format("Runtime Error: only NUM variables can be negative. '%s'", ctx.IDENTIFICADOR().getText()));
+                    }
+
+                    if(ctx.acceso_secuencia() != null){
+                        Variable var = getVariable(ctx.acceso_secuencia().IDENTIFICADOR().getText());
+                        if(var.getTipo() == Anasint.SEQ_NUM){
+                            Integer valorAcceso = (Integer) visit(ctx.acceso_secuencia());
+
+                            if(esPositivo) return valorAcceso;
+                            return -valorAcceso;
+                        }
+
+                        throw new RuntimeException(String.format("Runtime Error: only NUM variables can be negative. '%s'", ctx.acceso_secuencia().getText()));
+                    }
+
                 default:
                     // Failsafe para debug
-                    System.out.println(ctx.getStart().getText());
-                    System.out.println("No implementado (visitExpr_entera)");
-                    return null;
+                    throw new RuntimeException(String.format("No implementado (visitExpr_entera). '%s'", ctx.getText()));
             }
         }
     }
@@ -189,7 +310,26 @@ public class ExprParser extends AnasintBaseVisitor<Object> {
 
         if(var.getTipo() == Anasint.SEQ_LOG || var.getTipo() == Anasint.SEQ_NUM){
             // Obtenemos el indice
-            Integer indice = (Integer) visit(ctx.expr_entera());
+            Object exprValor = visit(ctx.expr_entera());
+            Integer indice = null;
+
+            // Desencapsulamos los valores
+            if(List.class.isInstance(exprValor)) {
+                if (((List<Object>) exprValor).size() > 1)
+                    throw new RuntimeException("Runtime Error: functions call in expresions can only return one value.");
+
+                exprValor = ((List<Object>) exprValor).get(0);
+            }
+
+            // Hay que desencapsular las variables
+            if(Variable.class.isInstance(exprValor)){
+                exprValor = ((Variable)exprValor).getValor();
+            }else{
+                exprValor = exprValor;
+            }
+
+            indice = (Integer) exprValor;
+
             List<Object> secuencia = (List<Object>) var.getValor();
 
             // Comprobamos que exista indice

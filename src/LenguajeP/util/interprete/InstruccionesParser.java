@@ -29,6 +29,8 @@ public class InstruccionesParser extends AnasintBaseVisitor<Object> {
     // Comprueba si una expresion es funcion
     private Boolean esFuncion(Anasint.ExprContext ctx){
         if(ctx.expr_entera() != null && ctx.expr_entera().llamada_func_proc() != null) return true;
+        // Puede ser una funcion dentro de parentesis
+        if(ctx.expr_entera() != null && ctx.expr_entera().expr_entera() != null && ctx.expr_entera().expr_entera().size() == 1 && ctx.expr_entera().expr_entera(0).llamada_func_proc() != null) return true;
         else return false;
     }
 
@@ -40,7 +42,8 @@ public class InstruccionesParser extends AnasintBaseVisitor<Object> {
         // Comprobamos que coincida el numero de expresiones y de identificadores
         if(ctx.expr().size() != identificadoresOAccesos.size()){
             // Si la expresion es una funcion puede ser valida
-            if(ctx.expr().size() == 1 && this.esFuncion(ctx.expr(0))){
+            //TODO: falla si la llamada a la funcion esta entre parentesis
+            if( ctx.expr().size() == 1 && this.esFuncion(ctx.expr(0))){
                 // Comprobamos que coincida el numero de variables de la asignacion con el numero de variables devueltas por la funcion
                 Subprograma subprograma = null;
                 String identificador = ctx.expr(0).expr_entera().llamada_func_proc().getStart().getText();
@@ -182,10 +185,15 @@ public class InstruccionesParser extends AnasintBaseVisitor<Object> {
             for(Anasint.Instruccion_iteracionContext instruccion: ctx.instruccion_iteracion()){
                 // Si es un break debemos terminar el bucle
                 if(instruccion.ruptura() != null) return null;
+                if(instruccion.devolver() != null) return visit(instruccion.devolver()); // Solo valido en funciones
                 else {
                     // Si se recibe un Anasint.RUPTURA debemos acabar la ejecucion del bucle
                     Object res = visit(instruccion.instruccion());
                     if(Integer.class.isInstance(res) && ((Integer)res) == Anasint.RUPTURA ) return null;
+                    if(List.class.isInstance(res)){
+                        // Se trata de un dev anidado
+                        return res;
+                    }
                 }
             }
             // Volvemos a comprobar la condicion

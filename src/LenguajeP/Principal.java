@@ -32,7 +32,7 @@ public class Principal {
         frame.setVisible(true);
         // Analizador semantico al ataque
         Anasem anasem = new Anasem();
-        anasem.visit(tree);
+        //anasem.visit(tree);
 
         // Interprete
         Interprete interp = new Interprete();

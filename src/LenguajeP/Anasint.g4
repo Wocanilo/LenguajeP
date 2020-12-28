@@ -24,11 +24,11 @@ llamada_func_proc: IDENTIFICADOR INICIO_PARENTESIS (expr (COMA expr)*)? FIN_PARE
 expr_entera: expr_entera MAS expr_entera
             | expr_entera MENOS expr_entera
             | expr_entera POR expr_entera
-            | INICIO_PARENTESIS expr_entera FIN_PARENTESIS // Se pueden utilizar parentesis para modificar la prioridad de los operadores
-            | IDENTIFICADOR
-            | ENTERO
-            | llamada_func_proc
-            | acceso_secuencia
+            | MENOS* INICIO_PARENTESIS expr_entera FIN_PARENTESIS // Se pueden utilizar parentesis para modificar la prioridad de los operadores
+            | MENOS* IDENTIFICADOR
+            | MENOS* ENTERO
+            | MENOS* llamada_func_proc
+            | MENOS* acceso_secuencia
             ;
 
 // Los boleanos no tienen operaciones.
@@ -68,6 +68,7 @@ condicion_basica: expr IGUALDAD expr
          | expr MAYOR_QUE expr
          | expr MAYOR_IGUAL_QUE expr
          | expr MENOR_IGUAL_QUE expr
+         | expr // Puede tratarse de una expresion que evalua a Booleano
          | CIERTO // Condicion especial, siempre cierta
          | FALSO // Condicion especial, siempre falsa
          ;
