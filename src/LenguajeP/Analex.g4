@@ -6,7 +6,7 @@ TABULADOR: '\t' -> skip;
 FIN_LINEA: '\r'?'\n' -> skip;
 
 fragment DIGITO: [0-9];
-fragment LETRA: [a-z]|('-'|'_');
+fragment LETRA: [a-z]|('_');
 
 PROGRAMA: 'PROGRAMA';
 VARIABLES: 'VARIABLES';
@@ -69,7 +69,7 @@ PARATODO: 'PARATODO';
 EXISTE: 'EXISTE';
 
 // Esto va al final al colisionar con algunas palabras clave
-ENTERO: ('-')?DIGITO+;
+ENTERO: DIGITO+;
 IDENTIFICADOR: LETRA(LETRA|DIGITO)*;
 
 // Saltar comentarios

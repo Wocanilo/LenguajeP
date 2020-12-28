@@ -12,6 +12,7 @@ import javax.swing.*;
 import java.util.Arrays;
 
 public class Principal {
+    // TODO: los comentarios en linea no van
     public static void main(String[] args) throws Exception{
         CharStream input = CharStreams.fromFileName(args[0]);
         Analex analex = new Analex(input);
