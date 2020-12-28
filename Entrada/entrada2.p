@@ -1,10 +1,9 @@
 PROGRAMA
 VARIABLES
-/* Comprobamos creacion de todo tipo de variable */
    a:LOG;
    i,e:NUM;
    listafibo:SEQ(NUM);
-   t:SEQ(LOG);
+   lista_menores:SEQ(LOG);
 SUBPROGRAMAS
     FUNCION fibonacci(NUM n) dev(NUM res)
         VARIABLES
@@ -47,6 +46,36 @@ SUBPROGRAMAS
             i = i * 2;
             dev i;
     FFUNCION
+    FUNCION elementos_menores(NUM n, SEQ(NUM) lista) dev(SEQ(LOG) salida)
+        VARIABLES
+            i:NUM;
+        INSTRUCCIONES
+            i = 0;
+            salida = [];
+            mientras(i < ultima_posicion(lista)) hacer
+                si(lista[i] < n) entonces
+                    salida[ultima_posicion(salida)] = T;
+                sino
+                    salida[ultima_posicion(salida)] = F;
+                fsi
+                i = i + 1;
+            fmientras
+            dev salida;
+    FFUNCION
+    //Prueba de comentario en una linea
+    PROCEDIMIENTO invierte_lista(SEQ(NUM) lista)
+        VARIABLES
+            i:NUM;
+            salida:SEQ(NUM);
+        INSTRUCCIONES
+            i = ultima_posicion(lista) - 1;
+            salida = [];
+            mientras(i >= 0) hacer
+                salida[ultima_posicion(salida)] = lista[i];
+                i = i - 1;
+            fmientras
+            lista = salida;
+    FPROCEDIMIENTO
 INSTRUCCIONES
    listafibo = [];
    /* Rellenamos la lista con los primeros numeros */
@@ -61,3 +90,10 @@ INSTRUCCIONES
    /* Multiples parentesis */
    i = ((((((nest(5)))))))-1;
    mostrar(i);
+   /* Creacion lista de valores LOG */
+   lista_menores = elementos_menores(13, listafibo);
+   mostrar(lista_menores);
+   /* Invertimos la lista de fibo */
+   invierte_lista(listafibo); // Prueba de comentario en una linea
+   mostrar(listafibo);
+

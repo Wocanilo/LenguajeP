@@ -73,5 +73,5 @@ ENTERO: DIGITO+;
 IDENTIFICADOR: LETRA(LETRA|DIGITO)*;
 
 // Saltar comentarios
-COMENTARIOS_LINEA: '//' .*? -> skip;
+COMENTARIOS_LINEA: '//'  ~( '\r' | '\n' )* -> skip;
 COMENTARIOS_BLOQUE: '/*' .*? '*/' -> skip;
