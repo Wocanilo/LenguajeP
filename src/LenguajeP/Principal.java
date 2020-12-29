@@ -12,8 +12,6 @@ import javax.swing.*;
 import java.util.Arrays;
 
 public class Principal {
-    // TODO: hay que cambiar el semantico para que entienda los negativos
-    // TODO: revisar especificaciones
     // TODO: crear clase para LOG para mostrar T y F en la salida
     public static void main(String[] args) throws Exception{
         CharStream input = CharStreams.fromFileName(args[0]);

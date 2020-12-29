@@ -12,7 +12,6 @@ import java.util.HashMap;
 public class Interprete extends AnasintBaseVisitor<Object> {
     private HashMap<String, Variable> almacenVariables;
 
-    //TODO: reflejar cambios de Anasint en el analizador semantico y en su especificacion
     @Override
     public Object visitPrograma(Anasint.ProgramaContext ctx){
 

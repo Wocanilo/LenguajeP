@@ -1,10 +1,12 @@
+lexer grammar Analex
+
 // Saltar espacios en blanco, tabulaciones y saltos de linea
 BLANCO: ' ' -> skip
 TABULADOR: '\t' -> skip
 FIN_LINEA: '\r'?'\n' -> skip
 
 fragment DIGITO: [0-9]
-fragment LETRA: [a-z]|('-'|'_')
+fragment LETRA: [a-z]|('_')
 
 PROGRAMA: 'PROGRAMA'
 VARIABLES: 'VARIABLES'
@@ -16,8 +18,8 @@ NUM: 'NUM'
 LOG: 'LOG'
 SEQ_NUM: 'SEQ(NUM)'
 SEQ_LOG: 'SEQ(LOG)'
-SEQ: 'SEQ'
-NO_TIPO: 'NO_TIPO'
+SEQ: 'SEQ' // Palabra reservada usada para representar listas vacias
+NO_TIPO: 'NO_TIPO' // Palabra reservada usada para representar la ausencia de tipo
 
 // Simbolos
 TRUE: 'T'
@@ -66,9 +68,10 @@ FPROCEDIMIENTO: 'FPROCEDIMIENTO'
 PARATODO: 'PARATODO'
 EXISTE: 'EXISTE'
 
-ENTERO: ('-')?DIGITO+
+// Esto va al final al colisionar con algunas palabras clave
+ENTERO: DIGITO+
 IDENTIFICADOR: LETRA(LETRA|DIGITO)*
 
 // Saltar comentarios
-COMENTARIOS_LINEA: '//' .*? -> skip
+COMENTARIOS_LINEA: '//'  ~( '\r' | '\n' )* -> skip
 COMENTARIOS_BLOQUE: '/*' .*? '*/' -> skip

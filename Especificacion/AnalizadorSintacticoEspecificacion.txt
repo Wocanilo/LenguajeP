@@ -21,14 +21,14 @@ decl_var: IDENTIFICADOR (COMA IDENTIFICADOR)* PyP tipo
 llamada_func_proc: IDENTIFICADOR INICIO_PARENTESIS (expr (COMA expr)*)? FIN_PARENTESIS
 
 // Los enteros pueden sumarse, restarse y multiplicarse. Tambien se pueden realizar llamadas a funciones
-expr_entera: expr_entera MAS expr_entera
+expr_entera: expr_entera POR expr_entera // Ponemos la mult. primero para asegurar el orden de prioridad
             | expr_entera MENOS expr_entera
-            | expr_entera POR expr_entera
-            | INICIO_PARENTESIS expr_entera FIN_PARENTESIS // Se pueden utilizar parentesis para modificar la prioridad de los operadores
-            | IDENTIFICADOR
-            | ENTERO
-            | llamada_func_proc
-            | acceso_secuencia
+            | expr_entera MAS expr_entera
+            | MENOS* INICIO_PARENTESIS expr_entera FIN_PARENTESIS // Se pueden utilizar parentesis para modificar la prioridad de los operadores
+            | MENOS* IDENTIFICADOR
+            | MENOS* ENTERO
+            | MENOS* llamada_func_proc
+            | MENOS* acceso_secuencia
 
 
 // Los boleanos no tienen operaciones.
@@ -54,8 +54,12 @@ expr: expr_entera
     | expr_secuencia
 
 
-// La asignacion de variables puede ser simple o multiple.
-asignacion: IDENTIFICADOR (COMA IDENTIFICADOR)* IGUAL expr (COMA expr)* PyC
+// La asignacion de variables puede ser simple o multiple. Se permite modificar elementos de una secuencia
+asignacion: identificador_O_Acceso (COMA identificador_O_Acceso)* IGUAL expr (COMA expr)* PyC
+
+identificador_O_Acceso: IDENTIFICADOR
+                      |acceso_secuencia
+
 
 // P es un lenguaje fuertemente tipado, no se permite "mezclar" tipos en las condiciones. Es necesario comprobar el tipo
 condicion_basica: expr IGUALDAD expr
@@ -64,15 +68,16 @@ condicion_basica: expr IGUALDAD expr
          | expr MAYOR_QUE expr
          | expr MAYOR_IGUAL_QUE expr
          | expr MENOR_IGUAL_QUE expr
+         | expr // Puede tratarse de una expresion que evalua a Booleano
          | CIERTO // Condicion especial, siempre cierta
          | FALSO // Condicion especial, siempre falsa
 
 
 // Las condiciones se puden concatenar con operadores, cuya prioridad se puede romper con parentesis
-condicion_completa: condicion_completa CONJUNCION condicion_completa
+condicion_completa: NEGACION condicion_completa
                   | condicion_completa DISYUNCION condicion_completa
+                  | condicion_completa CONJUNCION condicion_completa
                   | INICIO_PARENTESIS condicion_completa FIN_PARENTESIS
-                  | NEGACION condicion_completa
                   | condicion_basica
 
 
@@ -80,10 +85,12 @@ condicion_completa: condicion_completa CONJUNCION condicion_completa
 condicional: SI INICIO_PARENTESIS condicion_completa FIN_PARENTESIS ENTONCES instruccion_condicionalSi+ (SINO (instruccion_condicionalSino)+)? FSI
 instruccion_condicionalSi: instruccion
                          | ruptura
+                         | devolver
 
 
 instruccion_condicionalSino: instruccion
                            | ruptura
+                           | devolver
 
 
 // Estructura iterativa mientras-hacer-fmientras
@@ -91,10 +98,12 @@ ruptura: RUPTURA PyC
 iteracion: MIENTRAS INICIO_PARENTESIS condicion_completa FIN_PARENTESIS HACER instruccion_iteracion+ FMIENTRAS
 instruccion_iteracion: instruccion
                      | ruptura
+                     | devolver
+
 
 instruccion: (asignacion|condicional|iteracion|(llamada_func_proc PyC))
 
-instrucciones_programa: INSTRUCCIONES instruccion+ // Los programas con 0 instrucciones no son correctos
+instrucciones_programa: INSTRUCCIONES instruccion*
 
 // Seccion de subprogramas. Se ha separado la definicion de parametros para facilitar su parseo
 parametro: tipo IDENTIFICADOR
