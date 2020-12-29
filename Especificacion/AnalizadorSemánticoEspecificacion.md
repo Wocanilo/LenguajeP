@@ -76,9 +76,9 @@ parametros: p=parametro (COMA p=parametro)* {almacenar cada p en ps};
 devolver: DEV expr (COMA expr)*;
 instrucciones_funcion: INSTRUCCIONES (instruccion|devolver)*;
 
-def_func: FUNCION nombreFunc=IDENTIFICADOR INICIO_PARENTESIS ps=parametros? FIN_PARENTESIS DEV INICIO_PARENTESIS ps=parametros FIN_PARENTESIS vs=variables instrucciones_funcion FFUNCION; 
+def_func: FUNCION nombreFunc=IDENTIFICADOR INICIO_PARENTESIS ps=parametros? FIN_PARENTESIS DEV INICIO_PARENTESIS ps=parametros FIN_PARENTESIS vs=variables INSTRUCCIONES instrucciones_funcion+ FFUNCION;
 {almacenar ps en tipoVariable[nombreFunc]} {almacenar vs en tipoVariable[nombreFunc]}
-def_proc: PROCEDIMIENTO nombreProc=IDENTIFICADOR INICIO_PARENTESIS ps=parametros? FIN_PARENTESIS vs=variables instrucciones FPROCEDIMIENTO;
+def_proc: def_proc: PROCEDIMIENTO nombreProc=IDENTIFICADOR INICIO_PARENTESIS ps=parametros? FIN_PARENTESIS vs=variables instrucciones_procedimiento+ FPROCEDIMIENTO;
 {almacenar ps en tipoVariable[nombreProc]} {almacenar vs en tipoVariable[nombreProc]}
 
 subprogramas: SUBPROGRAMAS (def_func | def_proc)*;
@@ -141,9 +141,9 @@ Además, dado que P predefine dos funciones: __vacia__ y __ultima_posicion__, el
 | ultima_posicion|
 ##### Gramatica atribuida
 ```
-def_func: FUNCION ident=IDENTIFICADOR INICIO_PARENTESIS parametros? FIN_PARENTESIS DEV INICIO_PARENTESIS parametros FIN_PARENTESIS variables instrucciones_funcion FFUNCION;
+def_func: FUNCION ident=IDENTIFICADOR INICIO_PARENTESIS parametros? FIN_PARENTESIS DEV INICIO_PARENTESIS parametros FIN_PARENTESIS variables INSTRUCCIONES instrucciones_funcion+ FFUNCION;
 {declarafuncionProcedimiento(ident)}
-def_proc: PROCEDIMIENTO IDENTIFICADOR INICIO_PARENTESIS parametros? FIN_PARENTESIS variables instrucciones FPROCEDIMIENTO;
+def_proc: PROCEDIMIENTO IDENTIFICADOR INICIO_PARENTESIS parametros? FIN_PARENTESIS variables instrucciones_procedimiento+ FPROCEDIMIENTO;
 {declarafuncionProcedimiento(ident)}
 
 (funcion declarafuncionProcedimiento(ident)
@@ -251,9 +251,9 @@ Por ello, guardaremos el scope actual para poder consultarlo al resolver una exp
 #####  Gramatica atribuida
 ```
 
-def_func: FUNCION ident=IDENTIFICADOR INICIO_PARENTESIS parametros? FIN_PARENTESIS DEV INICIO_PARENTESIS parametros FIN_PARENTESIS variables instrucciones_funcion FFUNCION;
+def_func: FUNCION ident=IDENTIFICADOR INICIO_PARENTESIS parametros? FIN_PARENTESIS DEV INICIO_PARENTESIS parametros FIN_PARENTESIS variables INSTRUCCIONES instrucciones_funcion+ FFUNCION;
 {establecer scopeActual con el valor de ident}
-def_proc: PROCEDIMIENTO ident=IDENTIFICADOR INICIO_PARENTESIS parametros? FIN_PARENTESIS variables instrucciones_procedimiento FPROCEDIMIENTO;
+def_proc: PROCEDIMIENTO ident=IDENTIFICADOR INICIO_PARENTESIS parametros? FIN_PARENTESIS variables instrucciones_procedimiento+ FPROCEDIMIENTO;
 {establecer scopeActual con el valor de ident}
 
 instrucciones_programa: INSTRUCCIONES instruccion+; {establecer scopeActual a GLOBAL}
@@ -297,14 +297,14 @@ El cálculo del tipo de una expresión se basa en las siguientes funciones
 
 
 (parametro de salida tipo)
-expr_entera: expr1=expr_entera MAS expr2=expr_entera {tipo=calculaTipoOPAritmetica(expr1, expr2)}
+expr_entera:  expr1=expr_entera POR expr2=expr_entera {tipo=calculaTipoOPAritmetica(expr1, expr2)}
             | expr1=expr_entera MENOS expr2=expr_entera {tipo=calculaTipoOPAritmetica(expr1, expr2)}
-            | expr1=expr_entera POR expr2=expr_entera {tipo=calculaTipoOPAritmetica(expr1, expr2)}
-            | INICIO_PARENTESIS tipo=expr_entera FIN_PARENTESIS
-            | ident=IDENTIFICADOR {tipo=calculaTipoVariable(ident)}
-            | ENTERO {tipo=entero)
-            | acceso_secuencia {tipo=tipoAccesoSecuencia(acceso_secuencia)}
-            | llamada_func_proc {calculaTipoFuncion(llamada_func_proc)}
+            | expr1=expr_entera MAS expr2=expr_entera {tipo=calculaTipoOPAritmetica(expr1, expr2)}
+            | MENOS* INICIO_PARENTESIS tipo=expr_entera FIN_PARENTESIS
+            | MENOS* ident=IDENTIFICADOR {tipo=calculaTipoVariable(ident)}
+            | MENOS* ENTERO {tipo=entero)
+            | MENOS* acceso_secuencia {tipo=tipoAccesoSecuencia(acceso_secuencia)}
+            | MENOS* llamada_func_proc {calculaTipoFuncion(llamada_func_proc)}
             ;
 
 (parametro de salida tipo)

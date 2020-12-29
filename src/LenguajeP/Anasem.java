@@ -172,16 +172,16 @@ public class Anasem extends AnasintBaseVisitor<Object> {
     }
 
     // Objetivo 1
-    // def_func: FUNCION nombreFunc=IDENTIFICADOR INICIO_PARENTESIS ps=parametros? FIN_PARENTESIS DEV INICIO_PARENTESIS ps=parametros FIN_PARENTESIS vs=variables instrucciones_funcion FFUNCION;
+    // def_func: FUNCION nombreFunc=IDENTIFICADOR INICIO_PARENTESIS ps=parametros? FIN_PARENTESIS DEV INICIO_PARENTESIS ps=parametros FIN_PARENTESIS vs=variables INSTRUCCIONES instrucciones_funcion+ FFUNCION;
     // {almacenar cada ps en tipoVariable[nombreFunc]} {almacenar vs en tipoVariable[nombreFunc]}
     // Objetivo 2
-    // def_func: FUNCION ident=IDENTIFICADOR INICIO_PARENTESIS parametros? FIN_PARENTESIS DEV INICIO_PARENTESIS parametros FIN_PARENTESIS variables instrucciones_funcion FFUNCION;
+    // def_func: FUNCION ident=IDENTIFICADOR INICIO_PARENTESIS parametros? FIN_PARENTESIS DEV INICIO_PARENTESIS parametros FIN_PARENTESIS variables INSTRUCCIONES instrucciones_funcion+ FFUNCION;
     // {declarafuncionProcedimiento(ident)}
     // Objetivo 4
-    // def_func: FUNCION ident=IDENTIFICADOR INICIO_PARENTESIS parametros? FIN_PARENTESIS DEV INICIO_PARENTESIS parametros FIN_PARENTESIS variables instrucciones_funcion FFUNCION;
+    // def_func: FUNCION ident=IDENTIFICADOR INICIO_PARENTESIS parametros? FIN_PARENTESIS DEV INICIO_PARENTESIS parametros FIN_PARENTESIS variables INSTRUCCIONES instrucciones_funcion+ FFUNCION;
     //{establecer scopeActual con el valor de ident}
     // Objetivo 4
-    // def_func: FUNCION ident=IDENTIFICADOR INICIO_PARENTESIS parametros? FIN_PARENTESIS DEV INICIO_PARENTESIS ps=parametros FIN_PARENTESIS variables instrucciones_funcion FFUNCION;
+    // def_func: FUNCION ident=IDENTIFICADOR INICIO_PARENTESIS parametros? FIN_PARENTESIS DEV INICIO_PARENTESIS ps=parametros FIN_PARENTESIS variables INSTRUCCIONES instrucciones_funcion+ FFUNCION;
     //{almacenar cada ident con los tipos contenidos en ps en almacen tipos funciones}
     @Override
     public Object visitDef_func(Anasint.Def_funcContext ctx){
@@ -233,13 +233,13 @@ public class Anasem extends AnasintBaseVisitor<Object> {
     }
 
     // Objetivo 1
-    // def_proc: PROCEDIMIENTO nombreProc=IDENTIFICADOR INICIO_PARENTESIS ps=parametros? FIN_PARENTESIS vs=variables instrucciones FPROCEDIMIENTO;
+    // def_proc: PROCEDIMIENTO nombreProc=IDENTIFICADOR INICIO_PARENTESIS ps=parametros? FIN_PARENTESIS vs=variables instrucciones_procedimiento+ FPROCEDIMIENTO;
     // {almacenar cada ps en tipoVariable[nombreProc]} {almacenar vs en tipoVariable[nombreProc]}
     // Objetivo 2
-    // def_proc: PROCEDIMIENTO IDENTIFICADOR INICIO_PARENTESIS parametros? FIN_PARENTESIS variables instrucciones FPROCEDIMIENTO;
+    // def_proc: PROCEDIMIENTO IDENTIFICADOR INICIO_PARENTESIS parametros? FIN_PARENTESIS variables instrucciones_procedimiento+ FPROCEDIMIENTO;
     // {declarafuncionProcedimiento(ident)}
     // Objetivo 4
-    // def_proc: PROCEDIMIENTO ident=IDENTIFICADOR INICIO_PARENTESIS parametros? FIN_PARENTESIS variables instrucciones_procedimiento FPROCEDIMIENTO;
+    // def_proc: PROCEDIMIENTO ident=IDENTIFICADOR INICIO_PARENTESIS parametros? FIN_PARENTESIS variables instrucciones_procedimiento+ FPROCEDIMIENTO;
     //{establecer scopeActual con el valor de ident}
     @Override
     public Object visitDef_proc(Anasint.Def_procContext ctx){
@@ -595,7 +595,7 @@ public class Anasem extends AnasintBaseVisitor<Object> {
         else return false;
     }
 
-    // asignacion: (ident=IDENTIFICADOR|tipo=acceso_secuencia) (COMA (ident=IDENTIFICADOR|tipo=acceso_secuencia))* IGUAL expr (COMA expr)* PyC;
+    // asignacion: ident=identificador_O_Acceso (COMA ident=identificador_O_Acceso)* IGUAL expr (COMA expr)* PyC;
     // {por cada pareja ident,expr calculaTipoAsignacion(ident, expr), si son impares ERROR, si varios ident
     // y una sola expr comprobar si es funcion y los tipos coinciden sino ERROR. Si es acceso_secuencia devolver tipo de la secuencia (si existe)}
     @Override
