@@ -433,24 +433,25 @@ public class Anasem extends AnasintBaseVisitor<Object> {
     }
 
     //(parametro de salida tipo)
-    //expr_entera: expr1=expr_entera MAS expr2=expr_entera {tipo=calculaTipoOPAritmetica(expr1, expr2)}
+    //expr_entera:  expr1=expr_entera POR expr2=expr_entera {tipo=calculaTipoOPAritmetica(expr1, expr2)}
     //            | expr1=expr_entera MENOS expr2=expr_entera {tipo=calculaTipoOPAritmetica(expr1, expr2)}
-    //            | expr1=expr_entera POR expr2=expr_entera {tipo=calculaTipoOPAritmetica(expr1, expr2)}
-    //            | INICIO_PARENTESIS tipo=expr_entera FIN_PARENTESIS
-    //            | ident=IDENTIFICADOR {tipo=calculaTipoVariable(ident)}
-    //            | ENTERO {tipo=entero)
-    //            | acceso_secuencia {tipo=tipoAccesoSecuencia(acceso_secuencia)}
-    //            | llamada_func_proc {calculaTipoFuncion(llamada_func_proc)}
+    //            | expr1=expr_entera MAS expr2=expr_entera {tipo=calculaTipoOPAritmetica(expr1, expr2)}
+    //            | MENOS* INICIO_PARENTESIS tipo=expr_entera FIN_PARENTESIS
+    //            | MENOS* ident=IDENTIFICADOR {tipo=calculaTipoVariable(ident)}
+    //            | MENOS* ENTERO {tipo=entero)
+    //            | MENOS* acceso_secuencia {tipo=tipoAccesoSecuencia(acceso_secuencia)}
+    //            | MENOS* llamada_func_proc {calculaTipoFuncion(llamada_func_proc)}
     //            ;
     @Override
     public Integer visitExpr_entera(Anasint.Expr_enteraContext ctx){
         // Casos base
         if(ctx.expr_entera().isEmpty()){
+            String identificador = null;
             switch(ctx.getStart().getType()){
                 case Anasint.ENTERO:
                     return Anasint.NUM;
                 case Anasint.IDENTIFICADOR:
-                    String identificador = ctx.getStart().getText();
+                    identificador = ctx.getStart().getText();
                     // Importante recordar que esta rama tambien se visita en las expresiones booleanas
                     if(ctx.llamada_func_proc() != null) {
                         // Debemos seguir visitando la llamada.
@@ -464,6 +465,50 @@ public class Anasem extends AnasintBaseVisitor<Object> {
                     }else{
                         // Es una variable
                         return this.calculaTipoVariable(identificador);
+                    }
+                case Anasint.MENOS:
+                    Integer tipo = null;
+                    // Es un entero
+                    if(ctx.ENTERO() != null) {
+                        return Anasint.NUM;
+                    }
+                    // Es llamada a funcion
+                    if(ctx.llamada_func_proc() != null) {
+                        // Debemos seguir visitando la llamada.
+                        identificador = ctx.llamada_func_proc().IDENTIFICADOR().getText();
+                        visit(ctx.llamada_func_proc());
+
+                        tipo = this.calculaTipoFuncion(identificador);
+                        if(tipo != Anasint.NUM) {
+                            System.out.println(String.format("ERROR: se trató de hacer negativo un valor de tipo '%s'. '%s'", this.idToString(tipo), ctx.getText()));
+                            return Anasint.NO_TIPO;
+                        }
+
+                        return Anasint.NUM;
+                    }
+                    // Es variable
+                    if(ctx.IDENTIFICADOR() != null){
+                        identificador = ctx.IDENTIFICADOR().getText();
+                        tipo = this.calculaTipoVariable(identificador);
+
+                        if(tipo != Anasint.NUM) {
+                            System.out.println(String.format("ERROR: se trató de hacer negativo un valor de tipo '%s'. '%s'", this.idToString(tipo), ctx.getText()));
+                            return Anasint.NO_TIPO;
+                        }
+
+                        return Anasint.NUM;
+                    }
+                    // Es acceso a secuencia
+                    if(ctx.acceso_secuencia() != null){
+                        identificador = ctx.acceso_secuencia().IDENTIFICADOR().getText();
+                        tipo = this.calculaTipoAccesoSecuencia(identificador);
+
+                        if(tipo != Anasint.NUM) {
+                            System.out.println(String.format("ERROR: se trató de hacer negativo un valor de tipo '%s'. '%s'", this.idToString(tipo), ctx.getText()));
+                            return Anasint.NO_TIPO;
+                        }
+
+                        return tipo;
                     }
                 default:
                     // Failsafe para debug

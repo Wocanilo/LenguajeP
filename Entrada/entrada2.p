@@ -46,6 +46,11 @@ SUBPROGRAMAS
             i = i * 2;
             dev i;
     FFUNCION
+    FUNCION nest2() dev (LOG b)
+        VARIABLES
+        INSTRUCCIONES
+            dev T;
+    FFUNCION
     FUNCION elementos_menores(NUM n, SEQ(NUM) lista) dev(SEQ(LOG) salida)
         VARIABLES
             i:NUM;
@@ -97,12 +102,6 @@ INSTRUCCIONES
    invierte_lista(listafibo); // Prueba de comentario en una linea
    mostrar(listafibo);
    mostrar(5*1+1);
-   i = 0;
-   mientras(cierto) hacer
-       si(cierto) entonces
-        si(cierto) entonces
-            mostrar(1);
-            ruptura;
-        fsi
-       fsi
-   fmientras
+   a = T;
+   a = nest2();
+
