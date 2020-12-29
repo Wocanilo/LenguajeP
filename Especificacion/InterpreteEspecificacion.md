@@ -1,7 +1,7 @@
 # Especificación Intérprete
 
 ## Objetivo
-Construir un intérprete de P. Esto es, un programa capaz de ejecutar un programa
+Construir un intérprete de P. Esto es, un programa capaz de interpretar un programa
 escrito en el lenguaje P.
 
 El lenguaje P consta de tres secciones bien delimitadas:
@@ -77,11 +77,11 @@ INSTRUCCIONES
 
 #### Funciones
 Las **funciones** tienen un conjunto (que puede estar vacío) de parámetros de entrada y un conjunto (no vacío) de parámetros de salida.
-Los parámetros de entrada son de solo lectura y los de salida de lectura/escritura.
+Los parámetros de *entrada* son de **solo lectura** y los de *salida* de **lectura/escritura**.
 
-La funciones deben incluir en algún punto de sus instrucciones un retorno explícito de los parámetros de sálida mediate la instrucción *dev*
+La funciones deben incluir en algún punto de sus instrucciones un retorno explícito de los parámetros de sálida mediate la instrucción *dev*.
 
-Las funciones pueden formar parte de una expresión si solo devuelven un valor.
+Las funciones pueden formar parte de una expresión *si solo devuelven un valor*.
 
 **Ejemplo declaración de función:**
 
@@ -100,8 +100,8 @@ FFUNCION
 Los **procedimientos** tienen un conjunto posiblemente vacío de parámetros de entrada y no tienen parámetros de salida.
 No hay devolución explícita de resultados.
 
-Las variables de entrada en un procedimiento son de **lectura/escritura**. Por tanto, las modificaciones realizadas a estas
-variables dentro de un procedimiento se ven reflejadas en la variable pasada.
+Las variables de entrada en un procedimiento son de **lectura/escritura**. Es decir, las variables se pasan por *referencia*, por lo
+que cualquier cambio realizado se ve reflejado en la variable pasada.
 
 La llamada a un procedimiento nunca puede formar parte de una expresión dado que no devuelve ningún valor.
 
@@ -160,6 +160,8 @@ Las instrucciones son:
        fmientras
        ```
 - **Llamada a procedimiento o función**
+  - Se produce un salto en el flujo de ejecución del programa, que pasa a interpretar las instrucciones del subprograma llamado.
+    Al finalizar la llamada, el flujo de ejecución continua desde donde fue interrumpido.  
 - **Devolución de resultados de una función**
     - Interrumpe la ejecucion de una funcion y devuelve los valores especificados
       ```
@@ -198,7 +200,7 @@ Para este fin, se creará un almacén de variables, que contendrá el estado de 
 | g             | secuencia_booleana |T,T,F,F|
 
 Estas variables serán representadas mediante una clase *Variable* que se encargara de asegurar su correcto tipado
-en tiempo de ejecución. Así como de evitar el acceso a variables sin valor definido.
+en tiempo de ejecución. Así como de evitar el acceso a variables sin valor definido o la modificación de variables de solo lectura.
 
 ```java
 public class Variable {
@@ -230,12 +232,13 @@ public class Variable {
     public void setValor(Object valor);
 }
 ```
+La creación del almacén de variables vendrá dada por una clase *VariablesParser*, que a partir de un contexto de Variables devolverá una estructura de datos con las Variables del programa.
 
 
 #### Gramática atribuida
 ```antlrv4
 // (parámetro de salida var)
-decl_var: ident=IDENTIFICADOR (COMA IDENTIFICADOR)* PyP t=tipo; // {var=Varible(ident, tipo)}
+decl_var: ident=IDENTIFICADOR (COMA ident=IDENTIFICADOR)* PyP t=tipo; // {para cada ident var=Varible(ident, tipo)}
 
 tipo: NUM // {t=entero}
     | LOG // {t=booleano}
@@ -266,19 +269,19 @@ public class ExprParser extends AnasintBaseVisitor<Object> {
 
 ```
 
-
 ###### Gramatica atribuida
 
 ```antlrv4
 // (parametro de salida valor)
-expr_entera: expr1=expr_entera MAS expr2=expr_entera // {valor=suma(expr1, expr2)}
+// En todos los casos MENOS se modifica el signo del valor resuelto si aplica. Si no es de tipo NUM se lanza ERROR
+expr_entera:  expr1=expr_entera POR expr2=expr_entera // {valor=suma(expr1, expr2)}
             | expr1=expr_entera MENOS expr2=expr_entera // {valor=resta(expr1, expr2)}
-            | expr1=expr_entera POR expr2=expr_entera // {valor=multiplica(expr1, expr2)}
-            | INICIO_PARENTESIS valor=expr_entera FIN_PARENTESIS
-            | ident=IDENTIFICADOR // {valor=getValorVariable(ident)}
-            | ENTERO // {valor=entero)
-            | acceso_secuencia // {valor=acceso_secuencia}
-            | llamada_func_proc // {valor=ejecutaFuncion(llamada_func_proc)}
+            | expr1=expr_entera MAS expr2=expr_entera // {valor=multiplica(expr1, expr2)}
+            | MENOS* INICIO_PARENTESIS valor=expr_entera FIN_PARENTESIS
+            | MENOS* ident=IDENTIFICADOR // {valor=getValorVariable(ident)}
+            | MENOS* ENTERO // {valor=entero)
+            | MENOS* acceso_secuencia // {valor=getValorAcceso(acceso_secuencia)}
+            | MENOS* llamada_func_proc // {valor=ejecutaFuncion(llamada_func_proc)}
             ;
 
 acceso_secuencia: ident=IDENTIFICADOR INICIO_CORCHETE elemento=expr_entera FIN_CORCHETE; // {getValorAcceso(ident, elemento)
@@ -318,16 +321,19 @@ expr_secuencia: INICIO_CORCHETE elementos_secuencia FIN_CORCHETE // {secuencia=e
 // (funcion suma(expr1, expr2){
 //      valor1 = resuelve expr1
 //      valor2 = resuelve expr2
+//      si valor1 o valor2 no es tipo NUM ERROR
 //      devuelve valor1 + valor2
 // )
 // (funcion resta(expr1, expr2){
 //      valor1 = resuelve expr1
 //      valor2 = resuelve expr2
+//      si valor1 o valor2 no es tipo NUM ERROR
 //      devuelve valor1 - valor2
 // )
 // (funcion multiplica(expr1, expr2){
 //      valor1 = resuelve expr1
 //      valor2 = resuelve expr2
+//      si valor1 o valor2 no es tipo NUM ERROR
 //      devuelve valor1 * valor2
 // )
 ```
@@ -348,11 +354,14 @@ para ejecutar una funcion o procedimiento.
 
 ```java
 public class Subprograma {
+    /*
+            Clase genérica que representa un subprograma
+     */
     protected String identificador;
     protected List<Parametro> parametrosEntrada;
     protected List<Parametro> parametrosSalida;
 
-    protected HashMap<String, Variable> almacenVariables;
+    protected HashMap<String, Variable> almacenVariables; // Variables declaradas en la seccion VARIABLES
     protected Object instruccionesSubprograma;
 
     // Indica si es funcion o procedimiento
@@ -367,6 +376,7 @@ public class Subprograma {
                        HashMap<String, Variable> almacenVariables, List<Anasint.Instrucciones_procedimientoContext> instruccionesSubprograma);
 
     // Ejecuta una funcion o procedimiento y devuelve su resultado
+    // Se pasan los subprogramas para poder anidar funciones/procedimientos
     public Object Execute(HashMap<String, Variable> variablesLocales, HashMap<String, Subprograma> subprogramas);
 }
 ```
@@ -385,6 +395,9 @@ public class Parametro {
 }
 ```
 
+El almacén de subprogramas es creado por la clase *SubprogramaParser*, que a partir del contexto correspondiente a la sección
+*SUBPROGRAMAS* del programa construye el almacén.
+
 ###### Gramatica atribuida
 
 ```antlrv4
@@ -402,12 +415,13 @@ def_proc: PROCEDIMIENTO ident=IDENTIFICADOR INICIO_PARENTESIS entrada=parametros
 // {devolver Subprograma(ident, entrada, vars, instr)}
 ```
 
+*Nota: el parseo de las secciones de un subprograma es llevado a cabo por las mismas clases que en el programa principal*
+
 #### Decisión 4
 Para poder interpretar un programa es necesario evaluar sus condiciones. Dado que las condiciones contienen expresiones,
 su resolución depende del contexto y será gestionada por la clase *CondicionParser*.
 
 Las comparaciones realizadas siempre deben de realizarse entre expresiones del mismo tipo.
-
 
 **Clase CondicionParser**
 
@@ -421,6 +435,13 @@ public class CondicionParser extends AnasintBaseVisitor<Object> {
 }
 ```
 
+Las condiciones siempre se procesan de la misma forma:
+1. Se resuelven las expresiones `!(2 + 1 == 4 + 1) && (1 == 1) -> !(3 == 5) && (1 == 1)`
+2. Se resuelven las igualdades y desigualdades `!(F) && (T)`
+3. Se resuelven las operaciones entre condiciones según el orden de prioridad de los operadores. `T && T -> T`
+
+Los operadores de condiciones presentan la siguiente prioridad: *!* tiene más prioridad que *&&* y *||* y estos a su vez tienen la misma
+prioridad entre ellos.
 
 ##### Gramática atribuida
 
@@ -432,6 +453,7 @@ condicion_basica: expr1=expr IGUALDAD expr2=expr // {valor=(expr1 == expr2)}
 | expr1=expr MAYOR_QUE expr2=expr // {valor=(expr1 > expr2)}
 | expr1=expr MAYOR_IGUAL_QUE expr2=expr // {valor=(expr1 >= expr2)}
 | expr1=expr MENOR_IGUAL_QUE expr2=expr // {valor=expr1 <= expr2}
+| valor=expr // Puede tratarse de una expresion que evalua a Booleano
 | CIERTO // {valor=T}
 | FALSO //  {valor=F}
 ;
@@ -517,9 +539,9 @@ asignacion: ident=IDENTIFICADOR (COMA ident=IDENTIFICADOR)* IGUAL exp=expr (COMA
 
 ##### Interpretar(llamadas)
 Los subprogramas pueden ser llamados en las siguientes situaciones:
-- Como una instrucción independiente (Solo procedimientos)
+- **Como una instrucción independiente** (Solo procedimientos)
   - Las llamadas a funciones no producen cambios en el estado del programa.
-- Como parte de una expresión (Solo funciones)
+- **Como parte de una expresión** (Solo funciones)
     - En una asignación (Puede devolver múltiples valores).
     - En cualquier otro caso (Tan solo puede devolver un valor).
 
@@ -620,7 +642,7 @@ Las instrucciones condicionales ejecutan un bloque de código en función de si 
 
 Existen dos tipos de estructuras condicionales:
 - si-fsi `Ejecuta el bloque de código contenido de cumplirse la condición`
-- si-sino-fsi `De no cumplirse la condición ejecuta otro bloque de código`
+- si-sino-fsi `Añade una rama que se interpreta en caso de no cumplirse la condición`
 
 Su implementación es sencilla:
 1. Se resuelve la condición.
@@ -671,8 +693,10 @@ Su implementación es la siguiente:
 
 1. Se resuelve la condición, de ser cierta el programa entra en un bucle
     1. Se interpretan las instrucciones del bloque de código
+       1. Si se trata de una instucción de *ruptura* termina la ejecución del bucle
+       2. Si se trata de una instrucción de *devolución* termina la ejecución de la función y, por tanto, del bucle. 
     2. Se resuelve la condición, de ser cierta continua el bucle.
-2. De ser falsa la condición, se continúa la interpretación por la siguiente instrucción del programa.    
+2. De ser falsa la condición, se continúa la interpretación por la siguiente instrucción del programa.
 
 **Ejemplo de iteración**
 ```
@@ -697,6 +721,8 @@ La instrucción de devolución es usada en las funciones para indicar los valore
 
 Esta instrucción provoca el fin de la interpretación de las instrucciones de la función.
 
+El uso de esta instrucción fuera de una función es *ilegal*.
+
 **Ejemplo devolución**
 ```
 PROGRAMA
@@ -714,6 +740,25 @@ INSTRUCCIONES
 
 ##### Intepretar(ruptura)
 La instrucción de ruptura provoca que el programa abandone el bloque de código en el que se encuentra la instrucción.
+
+Si la instrucción de *ruptura* se encuentra dentro de una estructura condicional, la ruptura se propaga a los bloques superiores, acabando la ejecución del primer bucle iterativo encontrado (de existir).
+
+**Ejemplo ruptura anidada**
+```
+...
+mientras(cierto) hacer
+   si(cierto) entonces
+    si(cierto) entonces
+        mostrar(1);
+        ruptura;
+    fsi
+   fsi
+fmientras
+----- Salida -----
+1 -> 1
+```
+
+La instrucción de ruptura no puede usarse fuera de bloques condicionales o iterativos.
 
 **Ejemplo ruptura**
 ```
@@ -737,3 +782,5 @@ i -> 1
 ##### Intepretar(mostrar resultados por consola)
 A efectos prácticos consideraremos que se trata de un procedimiento, por lo que no recibe un tratamiento especial
 por parte del intérprete.
+
+Simplemente crearemos una clase que herede de *Subprograma* y sobreescriba el constructor y el método *Execute*

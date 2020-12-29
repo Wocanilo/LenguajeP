@@ -183,7 +183,9 @@ public class InstruccionesParser extends AnasintBaseVisitor<Object> {
             for(Anasint.Instruccion_condicionalSiContext instruccion: ctx.instruccion_condicionalSi()){
                 if(instruccion.ruptura() != null) return Anasint.RUPTURA;
                 if(instruccion.devolver() != null) return visit(instruccion.devolver()); // Solo valido en funciones
-                visit(instruccion.instruccion());
+                Object res = visit(instruccion.instruccion());
+                // Propagamos la ruptura a la capa superior
+                if(Integer.class.isInstance(res) && ((Integer)res) == Anasint.RUPTURA ) return Anasint.RUPTURA;
             }
         }else{
             // Comprobamos si tiene un else
@@ -192,7 +194,9 @@ public class InstruccionesParser extends AnasintBaseVisitor<Object> {
                 for(Anasint.Instruccion_condicionalSinoContext instruccion: ctx.instruccion_condicionalSino()){
                     if(instruccion.ruptura() != null) return Anasint.RUPTURA;;
                     if(instruccion.devolver() != null) return visit(instruccion.devolver()); // Solo valido en funciones
-                    visit(instruccion.instruccion());
+                    Object res = visit(instruccion.instruccion());
+                    // Propagamos la ruptura a la capa superior
+                    if(Integer.class.isInstance(res) && ((Integer)res) == Anasint.RUPTURA ) return Anasint.RUPTURA;
                 }
             }
         }
@@ -256,7 +260,6 @@ public class InstruccionesParser extends AnasintBaseVisitor<Object> {
     @Override
     public Object visitLlamada_func_proc(Anasint.Llamada_func_procContext ctx){
         // Se trata de una funcion/procedimiento en linea, no devuelve nada.
-        // TODO: por ahora se permite llamar a funciones ya que no impacta en el resultado final. Lo ideal seria solo permitir la llamada a procedimientos
         this.exprParser.visit(ctx);
         return null;
     }

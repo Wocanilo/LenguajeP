@@ -11,7 +11,7 @@ public class Subprograma {
     protected List<Parametro> parametrosEntrada;
     protected List<Parametro> parametrosSalida;
 
-    protected HashMap<String, Variable> almacenVariables;
+    protected HashMap<String, Variable> almacenVariables; // Contiene las variables declaradas en la sección de variables del programa
     protected Object instruccionesSubprograma;
 
     // Indica si es funcion o procedimiento
@@ -50,7 +50,7 @@ public class Subprograma {
         }
 
         // Ejecutamos las instrucciones de la funcion/procedimiento
-        InstruccionesParser instruccionesParser = new InstruccionesParser(variablesLocales, subprogramas); // No se permite anidar llamadas a funciones/procedimientos
+        InstruccionesParser instruccionesParser = new InstruccionesParser(variablesLocales, subprogramas);
 
         if(this.esFuncion){
             // Es una funcion

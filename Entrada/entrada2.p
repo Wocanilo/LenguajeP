@@ -96,4 +96,13 @@ INSTRUCCIONES
    /* Invertimos la lista de fibo */
    invierte_lista(listafibo); // Prueba de comentario en una linea
    mostrar(listafibo);
-
+   mostrar(5*1+1);
+   i = 0;
+   mientras(cierto) hacer
+       si(cierto) entonces
+        si(cierto) entonces
+            mostrar(1);
+            ruptura;
+        fsi
+       fsi
+   fmientras

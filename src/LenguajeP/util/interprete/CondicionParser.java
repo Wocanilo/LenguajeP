@@ -27,7 +27,6 @@ public class CondicionParser extends AnasintBaseVisitor<Object> {
     @Override
     public Object visitCondicion_completa(Anasint.Condicion_completaContext ctx){
         // Comprobamos el numero de expresiones
-        // TODO: hay que comprobar que se respete el orden de prioridad
 
         // Si es condicion basica no hay que hacer nada mas
         if(ctx.condicion_basica() != null){
@@ -47,8 +46,11 @@ public class CondicionParser extends AnasintBaseVisitor<Object> {
                 throw new RuntimeException("Runtime error: unexpected condition in negation");
             }
 
+            // Puede ser una condicion basica entre parentesis
+            if(condicion.condicion_basica() != null) return visit(condicion.condicion_basica());
             return visit(condicion.condicion_completa(0));
         }
+
         // Se trata de una operacion entre condiciones
         Boolean condicion1 = (Boolean) visit(condiciones.get(0));
         Boolean condicion2 = (Boolean) visit(condiciones.get(1));
@@ -100,7 +102,7 @@ public class CondicionParser extends AnasintBaseVisitor<Object> {
            // Comprobamos que sea un booleano
            if(Boolean.class.isInstance(expr1)) return (Boolean) expr1;
 
-           throw new RuntimeException(String.format("Runtime Error: functions in conditions must return one LOG value", ctx.expr(0).getText()));
+           throw new RuntimeException(String.format("Runtime Error: functions in conditions must return LOG values", ctx.expr(0).getText()));
 
        } else{
             // Hay que calcular las expresiones y realizar las comparaciones

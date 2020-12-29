@@ -21,9 +21,9 @@ decl_var: IDENTIFICADOR (COMA IDENTIFICADOR)* PyP tipo;
 llamada_func_proc: IDENTIFICADOR INICIO_PARENTESIS (expr (COMA expr)*)? FIN_PARENTESIS;
 
 // Los enteros pueden sumarse, restarse y multiplicarse. Tambien se pueden realizar llamadas a funciones
-expr_entera: expr_entera MAS expr_entera
+expr_entera: expr_entera POR expr_entera // Ponemos la mult. primero para asegurar el orden de prioridad
             | expr_entera MENOS expr_entera
-            | expr_entera POR expr_entera
+            | expr_entera MAS expr_entera
             | MENOS* INICIO_PARENTESIS expr_entera FIN_PARENTESIS // Se pueden utilizar parentesis para modificar la prioridad de los operadores
             | MENOS* IDENTIFICADOR
             | MENOS* ENTERO
@@ -74,10 +74,10 @@ condicion_basica: expr IGUALDAD expr
          ;
 
 // Las condiciones se puden concatenar con operadores, cuya prioridad se puede romper con parentesis
-condicion_completa: condicion_completa CONJUNCION condicion_completa
+condicion_completa: NEGACION condicion_completa
                   | condicion_completa DISYUNCION condicion_completa
+                  | condicion_completa CONJUNCION condicion_completa
                   | INICIO_PARENTESIS condicion_completa FIN_PARENTESIS
-                  | NEGACION condicion_completa
                   | condicion_basica
                   ;
 
