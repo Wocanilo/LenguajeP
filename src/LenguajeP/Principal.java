@@ -29,18 +29,18 @@ public class Principal {
         frame.add(panel);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(500,400);
-        frame.setVisible(true);
+        //frame.setVisible(true);
         // Analizador semantico al ataque
         Anasem anasem = new Anasem();
         anasem.visit(tree);
 
         // Interprete
-        Interprete interp = new Interprete();
-        interp.visit(tree);
+        //Interprete interp = new Interprete();
+        //interp.visit(tree);
 
         // Compilador
-        //Compilador compilador = new Compilador();
-        //compilador.visit(tree);
+        Compilador compilador = new Compilador();
+        compilador.visit(tree);
 
     }
 }

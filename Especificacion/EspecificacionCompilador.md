@@ -229,7 +229,8 @@ Integer b;
 List<Boolean> c;
 ```
 
-Estas variables serán declaradas al inicio del programa principal o de la función o procedimiento correspondiente
+Estas variables serán declaradas al inicio del programa principal o de la función o procedimiento correspondiente.
+Dado que Java implementa el concepto de variable local, no será necesario realizar ninguna modificación especial.
 ## Decisión 2 (subprogramas)
 Es necesario traducir las funciones y procedimientos al lenguaje Java. Las funciones en P pueden devolver múltiples valores, mientras que en Java
 solo es posible devolver un valor.
@@ -249,11 +250,12 @@ class Tupla{
 ```
 
 Toda función que devuelva múltiples valores devolverá un objeto *Tupla*. El resto de funciones devolverán
-el resultado de manera directa.
+el resultado de manera directa. De esta forma seguiremos beneficiándonos de la comprobación de tipos de Java.
 
 Por otro lado, dado que los parámetros de entrada de una función son de solo lectura, debemos asegurar que sus valores
 no son modificados. En el caso de valores de tipo *Integer* y *Boolean*, al ser objetos inmutables, no debemos hacer nada,
-sin embargo, en el caso de objetos de tipo lista, debemos asegurar que su contenido no es modificado.
+sin embargo, en el caso de objetos de tipo lista, debemos asegurar que su contenido no es modificado. Para ello debemos asegurar
+que se pasan copias de los objetos originales a las funciones llamadas con estos tipos.
 
 ## Decisión 3 (asignaciones)
 Dado que las asignaciones múltiples no existen en Java, será necesario emularlas. Esto significa emular la asignación
@@ -269,8 +271,8 @@ expresiones de la asignación.
    aparecen en expresiones que no son la suya
     1. ```a,b = 12, a+1;``` `Hay colisión`
     2. ```a,b = a+1,b;```  `No hay colisión`
-3. Se almacena el valor original de las variables colisionadas en un almacen y se almacena su posición en el mismo
-4. Se modifica la expresión para que haga referencia al valor contenido en el almacen.
+3. Se almacena el valor original de las variables colisionadas en un almacén y se almacena su posición en el mismo
+4. Se modifican las expresiones para que hagan referencia al valor contenido en el almacén.
 5. Se vacía el almacén para la próxima asignación.
 
 **Ejemplos**
@@ -287,7 +289,7 @@ expresiones de la asignación.
     b = 23;
     ```
 
-*Asignación múltiple con variables**
+*Asignación múltiple con variables*
 - *Lenguaje P*
     ```
     a, b = 12, a + 1;
@@ -297,6 +299,7 @@ expresiones de la asignación.
     almacenTmp.add(a);
     a = 12;
     b = ((Integer)almacenTmp.get(0)) + 1;
+    almacenTmp.clear();
    ```
 
 Otro problema adicional vendrá dada por las llamadas a funciones que retornan múltiples valores. Será
@@ -315,13 +318,8 @@ castear el valor al tipo correspondiente a la variable para su correcta asignaci
     a = (Integer) tmp.getValor(0);
     b = (Integer) tmp.getValor(1);
    ```
-  
-Por otro lado, aunque en Java las variables se pasan por referencia, existen objetos inmutables como Boolean o Integer, cuya
-modificación provoca la creación de un nuevo objeto. Por este motivo, debemos implementar un mecanismo que permita asegurar
-la modificación de las variables pasadas como parámetro en un procedimiento. Además, de asegurar que las variables de entrada
-de una función no sean modificadas.
 
-Finalmente, la modificación de un elemento de una secuencia plantea un problema, dado que al utilizar un índice mayor a uno
+Por otro lado, la modificación de un elemento de una secuencia plantea un problema, dado que al utilizar un índice mayor a uno
 se aumenta el tamaño de la lista, será necesario crear una función que emule esta funcionalidad en Java.
 
 ## Decisión 4 (condiciones)
@@ -339,10 +337,6 @@ En Java, todo lo dicho anteriormente es cierto. Sin embargo, el orden de precede
 | < > <= >=       | < > <= >=       |
 | !               | == !=           |
 | && &#124;&#124; | && &#124;&#124; |
-
-Dad 
-
-//TODO: especificar orden de prioridad especificación interprete. tambien operadores num
 
 
 

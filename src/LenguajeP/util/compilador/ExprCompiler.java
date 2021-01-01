@@ -70,7 +70,15 @@ public class ExprCompiler extends AnasintBaseVisitor<Object>{
                     else return ctx.getText();
                 }
             }
-            if(ctx.acceso_secuencia() != null) return visit(ctx.acceso_secuencia());
+            if(ctx.acceso_secuencia() != null) {
+                Variable var = getVariable(ctx.acceso_secuencia().IDENTIFICADOR().getText());
+                if(this.posicionVariableTmp == null) return var;
+                else {
+                    if(this.posicionVariableTmp.containsKey(var)) return String.format("((%s) almacenTmp.get(%s)).get(%s)", this.idToString(var.getTipo()), this.posicionVariableTmp.get(var),
+                            visit(ctx.acceso_secuencia().expr_entera()));
+                    else return String.format("%s.get(%s)", var.getIdentificador(), ctx.acceso_secuencia().expr_entera().getText());
+                }
+            }
 
             if(ctx.llamada_func_proc() != null){
                 System.out.println("Compilation: llamada a funcion.");
@@ -141,5 +149,28 @@ public class ExprCompiler extends AnasintBaseVisitor<Object>{
             throw new RuntimeException(String.format("Compilation Error: variable '%s' is not a sequence.",
                     identificador));
         }
+    }
+
+    // (parametro de salida secuencia)
+    // expr_secuencia: INICIO_CORCHETE elementos_secuencia FIN_CORCHETE {secuencia=elementos_secuencia}
+    //              | INICIO_CORCHETE FIN_CORCHETE {secuencia=[]}
+    //              ;
+    @Override
+    public Object visitExpr_secuencia(Anasint.Expr_secuenciaContext ctx){
+        if(ctx.elementos_secuencia() == null) throw new RuntimeException("Compilation Error: this should be handled before.");
+        else{
+            return visit(ctx.elementos_secuencia());
+        }
+    }
+
+    @Override
+    public Object visitElementos_secuencia(Anasint.Elementos_secuenciaContext ctx){
+        List<Object> elementos = new ArrayList<>();
+
+        for(Anasint.Expr_elementosSecuenciaContext elemento: ctx.expr_elementosSecuencia()){
+            elementos.add(visit(elemento));
+        }
+
+        return elementos;
     }
 }

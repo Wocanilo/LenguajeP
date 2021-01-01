@@ -23,6 +23,23 @@ public class InstruccionesCompiler extends AnasintBaseVisitor<Object> {
         this.condicionParser = new CondicionParser(almacenVariables, subprogramas);
     }
 
+    private String idToString(Integer id){
+        switch(id){
+            case Anasint.NUM:
+                return "Integer";
+            case Anasint.LOG:
+                return "Boolean";
+            case Anasint.SEQ_LOG:
+                return "List<Boolean>";
+            case Anasint.SEQ_NUM:
+                return "List<Integer>";
+            case Anasint.SEQ:
+                return "List<Object>";
+            default:
+                throw new RuntimeException("Compilation Errror: invalid variable type. NO_TIPO?");
+        }
+    }
+
     // Comprueba si una expresion es funcion
     private Boolean esFuncion(Anasint.ExprContext ctx){
         if(ctx.expr_entera() != null && ctx.expr_entera().llamada_func_proc() != null) return true;
@@ -91,7 +108,7 @@ public class InstruccionesCompiler extends AnasintBaseVisitor<Object> {
 
                     if(!this.almacenVariables.containsKey(identificador)) throw new RuntimeException(String.format("Compilation Error: tried to access undefined variable '%s'.", identificador));
 
-                    salida.append(String.format("%s = almacenFuncion.getValor(%s);\n", identificador, index));
+                    salida.append(String.format("%s = (%s) almacenFuncion.getValor(%s);\n", identificador, this.idToString(this.almacenVariables.get(identificador).getTipo()),index));
                     index++;
                 }
                 return salida;
@@ -119,8 +136,12 @@ public class InstruccionesCompiler extends AnasintBaseVisitor<Object> {
         List<Object> variablesExpresiones = new ArrayList<>();
         StringBuilder res = new StringBuilder();
 
-        // TODO: permitir llamadas a funciones
         for(Anasint.ExprContext expr: ctx.expr()){
+            if(expr.expr_secuencia() != null) {
+                for(Object var: (List<Object>) this.exprParser.visit(expr.expr_secuencia())){
+                    if(var != null) variablesExpresiones.add(var);
+                }
+            }
             variablesExpresiones.add(this.exprParser.visit(expr));
         }
 
@@ -147,13 +168,17 @@ public class InstruccionesCompiler extends AnasintBaseVisitor<Object> {
             }
         }
 
-
         StringBuilder salida = new StringBuilder();
         HashMap<Variable, Integer> posicionVariableTmp = new HashMap<>();
         // 4. Almacenamos el valor de las variables que colisionan en nuestro stack de variables.
         int index = 0;
         for(Variable var: variablesGuardadas){
-            salida.append(String.format("almacenTmp.add(%s);\n", var.getIdentificador()));
+            if(var.getTipo() == Anasint.SEQ_NUM || var.getTipo() == Anasint.SEQ_LOG){
+                // Hay que hacer una copia explicita
+                salida.append(String.format("almacenTmp.add(new ArrayList<>(%s));\n", var.getIdentificador()));
+            }else{
+                salida.append(String.format("almacenTmp.add(%s);\n", var.getIdentificador()));
+            }
             posicionVariableTmp.put(var, index);
             index++;
         }
@@ -161,8 +186,30 @@ public class InstruccionesCompiler extends AnasintBaseVisitor<Object> {
         // 5. Resolvemos las expresiones arreglando las colisiones y creamos las asignaciones
         ExprCompiler exprParserAsignacion = new ExprCompiler(this.almacenVariables, this.subprogramas, posicionVariableTmp);
         // Para cada pareja creamos su asignacion
+
         for(int i=0; i<variables.size(); i++){
-            salida.append(String.format("%s = %s;\n", variables.get(i).getIdentificador(), exprParserAsignacion.visit(ctx.expr(i))));
+            Anasint.ExprContext expr = ctx.expr(i);
+            Variable var = variables.get(i);
+            if(expr.expr_secuencia() != null){
+                String tipoSecuencia = "";
+                if(var.getTipo() == Anasint.SEQ_LOG) tipoSecuencia = "Boolean";
+                if(var.getTipo() == Anasint.SEQ_NUM) tipoSecuencia = "Integer";
+                if(var.getTipo() == Anasint.NUM || var.getTipo() == Anasint.LOG) throw new RuntimeException(String.format("Compilation Error: '%s' is not of type SEQ", var.getIdentificador()));
+
+                if(expr.expr_secuencia().elementos_secuencia() == null){
+                    salida.append(String.format("%s = %s;\n", var.getIdentificador(), String.format("new ArrayList<%s>()", tipoSecuencia)));
+                }else{
+                    // Resolvemos la lista de elementos
+                    List<String> expresionesSecuencia = (List<String>) exprParserAsignacion.visit(expr.expr_secuencia().elementos_secuencia());
+
+                    salida.append(String.format("%s = %s;\n", var.getIdentificador(), String.format("new ArrayList<%s>()", tipoSecuencia)));
+                    for(String exprSecuencia: expresionesSecuencia){
+                        salida.append(String.format("%s.add(%s);\n", var.getIdentificador(), exprSecuencia));
+                    }
+                }
+            }else{
+                salida.append(String.format("%s = %s;\n", var.getIdentificador(), exprParserAsignacion.visit(ctx.expr(i))));
+            }
         }
 
         // 6. Se limpia el almacen temporal si ha sido usado
@@ -235,7 +282,7 @@ public class InstruccionesCompiler extends AnasintBaseVisitor<Object> {
             return String.format("System.out.println(String.format(\"%s->%s\", %s));\n", ctx.expr(0).getText(), "%s", ctx.expr(0).getText());
         }
 
-        return "fffffffffffff";
+        return String.format("%s;\n", ctx.getText());
     }
 
     @Override

@@ -23,7 +23,7 @@ public class Compilador extends AnasintBaseVisitor<Object> {
             "            this.valores = valores;\n" +
             "        }\n" +
             "        public Object getValor(Integer elemento) {\n" +
-            "            if(this.valores.length < elemento) return this.valores[elemento];\n" +
+            "            if(elemento < this.valores.length) return this.valores[elemento];\n" +
             "            throw new RuntimeException(\"Runtime Error: out of bound access in Tupla\");\n" +
             "        }\n" +
             "    }\n\n";
@@ -144,7 +144,6 @@ public class Compilador extends AnasintBaseVisitor<Object> {
         InstruccionesCompiler instruccionesParser = new InstruccionesCompiler(variablesLocales, this.subprogramas);
         instrucciones.append("List<Object> almacenTmp = new ArrayList<>();\n");
 
-        // TODO: el procedimiento mostrar utiliza un asterisco identificador, hay que cambiarlo
         if(sub.parametrosEntrada != null){
             List<String> paramEntrada = new ArrayList<>();
             for(Parametro par: sub.parametrosEntrada){
@@ -170,7 +169,7 @@ public class Compilador extends AnasintBaseVisitor<Object> {
                 variablesLocales.put(var.getIdentificador(), var);
                 paramSalida.add(String.format("%s %s;", this.idToString(par.getTipo()), par.getIdentificador()));
             }
-            salida = String.join(";\n", paramSalida);
+            salida = String.join("\n", paramSalida);
 
             // Procesamos instrucciones
             Object instruccionesSubprograma = sub.getInstruccionesSubprograma();
@@ -180,9 +179,9 @@ public class Compilador extends AnasintBaseVisitor<Object> {
                 }
             }
 
-            if(sub.getParametrosSalida().size() == 1) return String.format("public %s %s(%s){\n%s\n%s}", this.idToString(sub.getParametrosSalida().get(0).getTipo()), sub.getIdentificador(), entrada, salida, instrucciones);
+            if(sub.getParametrosSalida().size() == 1) return String.format("public static %s %s(%s){\n%s\n%s}", this.idToString(sub.getParametrosSalida().get(0).getTipo()), sub.getIdentificador(), entrada, salida, instrucciones);
 
-            return String.format("public Tupla %s(%s){\n%s\n%s}", sub.getIdentificador(), entrada, salida,instrucciones);
+            return String.format("public static Tupla %s(%s){\n%s\n%s}", sub.getIdentificador(), entrada, salida, instrucciones);
         }else{
             // Procesamos instrucciones
             Object instruccionesSubprograma = sub.getInstruccionesSubprograma();
@@ -192,7 +191,7 @@ public class Compilador extends AnasintBaseVisitor<Object> {
                     instrucciones.append(instruccionesParser.visit(instruccion));
                 }
             }
-            return String.format("public void %s(%s){\n%s}", sub.getIdentificador(), entrada, instrucciones);
+            return String.format("public static void %s(%s){\n%s}", sub.getIdentificador(), entrada, instrucciones);
         }
     }
 }
