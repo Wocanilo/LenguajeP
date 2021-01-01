@@ -98,6 +98,8 @@ public class InstruccionesParser extends AnasintBaseVisitor<Object> {
             }
         }
 
+        if(valoresExpresiones.size() != identificadoresOAccesos.size()) throw new RuntimeException(String.format("Runtime Error: invalid number of variables and expresions in assignment. '%s'", ctx.getText()));
+
         // A cada variable le asignamos su nuevo valor.
         for(int i=0; i<identificadoresOAccesos.size(); i++){
 

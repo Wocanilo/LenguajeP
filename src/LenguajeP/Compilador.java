@@ -70,14 +70,18 @@ public class Compilador extends AnasintBaseVisitor<Object> {
         SubprogramaParser subprogramasParser = new SubprogramaParser();
         this.subprogramas = (HashMap<String, Subprograma>) subprogramasParser.visit(ctx.subprogramas());
         // Definimos predicados predefinidos
-        //subprogramas.put("mostrar", new Mostrar());
-        //subprogramas.put("vacia", new Vacia());
-        //subprogramas.put("ultima_posicion", new Ultima_Posicion());
+        subprogramas.put("mostrar", new Mostrar());
+        subprogramas.put("vacia", new Vacia());
+        subprogramas.put("ultima_posicion", new Ultima_Posicion());
 
         // Traducimos los programas
         StringBuilder subprogramasJava = new StringBuilder();
 
         for(Subprograma sub: subprogramas.values()){
+            if(sub.getIdentificador().equalsIgnoreCase("mostrar")) continue;
+            if(sub.getIdentificador().equalsIgnoreCase("vacia")) continue;
+            if(sub.getIdentificador().equalsIgnoreCase("ultima_posicion")) continue;
+
             subprogramasJava.append(String.format("%s\n",subprogramaToJava(sub)));
         }
 
@@ -95,6 +99,8 @@ public class Compilador extends AnasintBaseVisitor<Object> {
 
         InstruccionesCompiler instruccionesParser = new InstruccionesCompiler(this.almacenVariables, subprogramas);
         instrucciones.append("List<Object> almacenTmp = new ArrayList<>();\n");
+        instrucciones.append("Tupla almacenFuncion;\n");
+
         instrucciones.append(instruccionesParser.visit(ctx.instrucciones_programa()));
 
         /*programa.append("\nclass ProgramaP {\n" +

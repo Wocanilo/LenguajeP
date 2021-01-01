@@ -76,6 +76,25 @@ public class InstruccionesCompiler extends AnasintBaseVisitor<Object> {
 
                 if(identificadoresOAccesos.size() != subprograma.parametrosSalida.size()) throw new RuntimeException(String.format("Compilation Error: Invalid number of expressions and identifiers in an assignment. '%s'",
                         ctx.getText()));
+                if(!subprograma.isEsFuncion()) throw new RuntimeException("Compilation Error: only functions allowed in assignments.");
+
+                // Es llamada a funcion
+                StringBuilder salida = new StringBuilder();
+                salida.append(String.format("almacenFuncion = %s;\n", ctx.expr(0).getText()));
+
+                Integer index = 0;
+                for(Anasint.Identificador_O_AccesoContext var: identificadoresOAccesos){
+                    // Comprobamos si se trata de una secuencia o no
+
+                    if(var.IDENTIFICADOR() != null) identificador = var.getText();
+                    else identificador = var.acceso_secuencia().IDENTIFICADOR().getText();
+
+                    if(!this.almacenVariables.containsKey(identificador)) throw new RuntimeException(String.format("Compilation Error: tried to access undefined variable '%s'.", identificador));
+
+                    salida.append(String.format("%s = almacenFuncion.getValor(%s);\n", identificador, index));
+                    index++;
+                }
+                return salida;
             }else{
                 throw new RuntimeException(String.format("Compilation Error: Invalid number of expressions and identifiers in an assignment. '%s'",
                         ctx.getText()));

@@ -7,11 +7,6 @@ SUBPROGRAMAS
         VARIABLES
             c:NUM;
         INSTRUCCIONES
-            a = 12;
-            a,b = 1,a+1;
-            si(1==1) entonces
-                dev 1;
-            fsi
             dev 12;
     FFUNCION
     INSTRUCCIONES
@@ -22,3 +17,5 @@ SUBPROGRAMAS
         x = 1;
         mostrar(1-(-2));
     fsi
+    x = 122, 122;
+    mostrar(x);
