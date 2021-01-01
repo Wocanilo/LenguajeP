@@ -184,7 +184,21 @@ Las instrucciones son:
         ----- Salida del programa -----
         s -> 12
         ```
-    
+      
+## Otros aspectos de P
+El orden de los operadores es el siguiente (en orden decreciente de prioridad):
+
+| Operadores      |
+|-----------------|
+| *               |
+| + -             |
+| == !=           |
+| < > <= >=       |
+| !               |
+| && &#124;&#124; |
+| N/A             |
+
+
 ## Decisiones de diseño
 
 ### Decisión 1

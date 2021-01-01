@@ -2,14 +2,15 @@ package LenguajeP.util.interprete;
 
 import LenguajeP.Antlr.Anasint;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
 public class Subprograma {
-    protected String identificador;
-    protected List<Parametro> parametrosEntrada;
-    protected List<Parametro> parametrosSalida;
+    public String identificador;
+    public List<Parametro> parametrosEntrada;
+    public List<Parametro> parametrosSalida;
 
     protected HashMap<String, Variable> almacenVariables; // Contiene las variables declaradas en la sección de variables del programa
     protected Object instruccionesSubprograma;
@@ -120,6 +121,10 @@ public class Subprograma {
 
     public List<Parametro> getParametrosSalida() {
         return parametrosSalida;
+    }
+
+    public Object getInstruccionesSubprograma() {
+        return instruccionesSubprograma;
     }
 
     @Override

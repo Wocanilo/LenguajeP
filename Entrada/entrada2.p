@@ -46,11 +46,6 @@ SUBPROGRAMAS
             i = i * 2;
             dev i;
     FFUNCION
-    FUNCION nest2() dev (LOG b)
-        VARIABLES
-        INSTRUCCIONES
-            dev T;
-    FFUNCION
     FUNCION elementos_menores(NUM n, SEQ(NUM) lista) dev(SEQ(LOG) salida)
         VARIABLES
             i:NUM;
@@ -93,15 +88,15 @@ INSTRUCCIONES
    /* Funciones anidadas */
    mostrar(-nest(nest(5)));
    /* Multiples parentesis */
-   i = ((((((nest(5)))))))-1;
+   i = nest(5)-1;
    mostrar(i);
    /* Creacion lista de valores LOG */
    lista_menores = elementos_menores(13, listafibo);
    mostrar(lista_menores);
+   a,i = T, 25;
    /* Invertimos la lista de fibo */
    invierte_lista(listafibo); // Prueba de comentario en una linea
    mostrar(listafibo);
    mostrar(5*1+1);
    a = T;
-   a = nest2();
 

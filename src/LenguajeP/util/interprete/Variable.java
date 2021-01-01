@@ -107,4 +107,27 @@ public class Variable {
                 ", valor=" + valor +
                 '}';
     }
+
+    private String idToString(Integer id){
+        switch(id){
+            case Anasint.NUM:
+                return "Integer";
+            case Anasint.LOG:
+                return "Boolean";
+            case Anasint.SEQ_LOG:
+                return "List<Boolean>";
+            case Anasint.SEQ_NUM:
+                return "List<Integer>";
+            case Anasint.SEQ:
+                return "List<Object>";
+            default:
+                throw new RuntimeException("Compilation Errror: invalid variable type. NO_TIPO?");
+        }
+    }
+
+    public String toJava(){
+        // Traduce una variable a su declaración en Java
+        return String.format("%s %s;", this.idToString(this.getTipo()), this.getIdentificador());
+    }
+
 }
