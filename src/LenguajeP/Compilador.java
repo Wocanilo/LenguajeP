@@ -139,6 +139,8 @@ public class Compilador extends AnasintBaseVisitor<Object> {
         String salida = "";
         // Seccion VARIABLES
         StringBuilder seccionVariables = new StringBuilder();
+        // Salida implícita
+        List<String> salidaImplicita = new ArrayList<>();
 
         for(Variable var: sub.getVariablesLocales().values()){
             seccionVariables.append(String.format("%s\n", var.toJava()));
@@ -149,10 +151,12 @@ public class Compilador extends AnasintBaseVisitor<Object> {
         InstruccionesCompiler instruccionesParser = new InstruccionesCompiler(variablesLocales, this.subprogramas);
         instrucciones.append("List<Object> almacenTmp = new ArrayList<>();\n");
 
+
         if(sub.parametrosEntrada != null){
             List<String> paramEntrada = new ArrayList<>();
             for(Parametro par: sub.parametrosEntrada){
                 paramEntrada.add(par.toJava());
+                salidaImplicita.add(String.format("%s", par.getIdentificador()));
 
                 Variable var = new Variable(par.getIdentificador(), par.getTipo());
                 if(variablesLocales.containsKey(var)) throw new RuntimeException(String.format("Compilation Error: redeclared variable '%s' in subprogram '%s'", var.getIdentificador(),
@@ -197,7 +201,10 @@ public class Compilador extends AnasintBaseVisitor<Object> {
                     instrucciones.append(instruccionesParser.visit(instruccion));
                 }
             }
-            return String.format("public static void %s(%s){\n%s\n%s}", sub.getIdentificador(), entrada, seccionVariables, instrucciones);
+            // Devolución implícita de valores de entrada
+            instrucciones.append(String.format("return new Tupla(%s);\n", String.join(", ", salidaImplicita)));
+
+            return String.format("public static Tupla %s(%s){\n%s\n%s}", sub.getIdentificador(), entrada, seccionVariables, instrucciones);
         }
     }
 }

@@ -90,10 +90,10 @@ public class InstruccionesCompiler extends AnasintBaseVisitor<Object> {
                 subprograma = subprogramas.getOrDefault(identificador, null);
 
                 if(subprograma == null) throw new RuntimeException(String.format("Compilation Error: tried to call an undefined function/proc '%s'", identificador));
+                if(!subprograma.isEsFuncion()) throw new RuntimeException("Compilation Error: only functions allowed in assignments.");
 
                 if(identificadoresOAccesos.size() != subprograma.parametrosSalida.size()) throw new RuntimeException(String.format("Compilation Error: Invalid number of expressions and identifiers in an assignment. '%s'",
                         ctx.getText()));
-                if(!subprograma.isEsFuncion()) throw new RuntimeException("Compilation Error: only functions allowed in assignments.");
 
                 // Es llamada a funcion
                 StringBuilder salida = new StringBuilder();
@@ -286,23 +286,89 @@ public class InstruccionesCompiler extends AnasintBaseVisitor<Object> {
     @Override
     public Object visitLlamada_func_proc(Anasint.Llamada_func_procContext ctx){
         String identificador = ctx.IDENTIFICADOR().getText();
+        Subprograma sub;
+
+        if(!this.subprogramas.containsKey(identificador)) throw new RuntimeException(String.format("Compilation Error: call to undefined subprogram. '%s'", identificador));
+        else sub = this.subprogramas.get(identificador);
 
         if(identificador.equalsIgnoreCase("mostrar")){
             if(ctx.expr() != null && ctx.expr().size() > 1) throw new RuntimeException("Compilation Error: call to mostrar can only have one parameter");
-            return String.format("System.out.println(String.format(\"%s->%s\", %s));\n", ctx.expr(0).getText(), "%s", ctx.expr(0).getText());
+            return String.format("System.out.println(String.format(\"%s->%s\", %s));\n", ctx.expr(0).getText(), "%s", this.exprParserNoPosicion.visit(ctx.expr(0)));
         }
 
         if(identificador.equalsIgnoreCase("ultima_posicion")){
             if(ctx.expr() != null && ctx.expr().size() > 1) throw new RuntimeException("Compilation Error: call to ultima_posicion can only have one parameter");
-            return String.format("%s.size();\n", ctx.expr(0).getText());
+            return String.format("%s.size();\n", this.exprParserNoPosicion.visit(ctx.expr(0)));
         }
 
-        return String.format("%s;\n", ctx.getText());
+        StringBuilder result = new StringBuilder();
+
+        if(!sub.isEsFuncion()){
+            // Como es procedimiento, hay que modificar las variables con los valores que resulte de su ejecucion
+            // L que haremos será devolver de manerá implícita los valores de entrada
+            result.append(String.format("almacenFuncion = %s;\n", ctx.getText()));
+            Integer index = 0;
+            for(Anasint.ExprContext expr: ctx.expr()){
+                Object exprValue = this.exprParser.visit(expr);
+
+                if(exprValue != null && Variable.class.isInstance(exprValue)){
+                    Variable var = (Variable) exprValue;
+                    // si es una lista se modifica directamente
+                    if(var.getTipo() != Anasint.SEQ_NUM && var.getTipo() != Anasint.SEQ_LOG ){
+                        result.append(String.format("%s = almacenFuncion.getValue(%s);\n", var.getIdentificador(), index));
+                    }
+                }
+                index++;
+            }
+            return result;
+        }
+
+        // Resolvemos expresiones
+        List<String> expresiones = new ArrayList<>();
+
+        ExprCompiler exprLlamada = new ExprCompiler(this.almacenVariables, this.subprogramas);
+        for(Anasint.ExprContext expr: ctx.expr()){
+            Object res = exprLlamada.visit(expr);
+            if(sub.isEsFuncion() && res != null && Variable.class.isInstance(res)){
+                Variable var = (Variable) res;
+                if(var.getTipo() == Anasint.SEQ_LOG || var.getTipo() == Anasint.SEQ_NUM){
+                    // Pasamos una copia para que la funcion no modifique la lista original
+                    expresiones.add(String.format("new ArrayList<>(%s)", var.getIdentificador()));
+                }else{
+                    expresiones.add((String) visit(expr));
+                }
+            }else{
+                expresiones.add((String) visit(expr));
+            }
+        }
+
+        return String.format("%s(%s)", identificador, String.join(", ", expresiones));
     }
 
     @Override
     public Object visitInstruccion(Anasint.InstruccionContext ctx){
 
+        if(ctx.asignacion() != null) return visit(ctx.asignacion());
+        if(ctx.llamada_func_proc() != null) return visit(ctx.llamada_func_proc());
+        if(ctx.condicional() != null) return visit(ctx.condicional());
+        if(ctx.iteracion() != null) return visit(ctx.iteracion());
+
+        throw new RuntimeException(String.format("Compilation Error: unknown instruction '%s'", ctx.getText()));
+    }
+
+    @Override
+    public Object visitInstrucciones_funcion(Anasint.Instrucciones_funcionContext ctx){
+        if(ctx.asignacion() != null) return visit(ctx.asignacion());
+        if(ctx.llamada_func_proc() != null) return visit(ctx.llamada_func_proc());
+        if(ctx.condicional() != null) return visit(ctx.condicional());
+        if(ctx.iteracion() != null) return visit(ctx.iteracion());
+        if(ctx.devolver() != null) return visit(ctx.devolver());
+
+        throw new RuntimeException(String.format("Compilation Error: unknown instruction '%s'", ctx.getText()));
+    }
+
+    @Override
+    public Object visitInstrucciones_procedimiento(Anasint.Instrucciones_procedimientoContext ctx){
         if(ctx.asignacion() != null) return visit(ctx.asignacion());
         if(ctx.llamada_func_proc() != null) return visit(ctx.llamada_func_proc());
         if(ctx.condicional() != null) return visit(ctx.condicional());

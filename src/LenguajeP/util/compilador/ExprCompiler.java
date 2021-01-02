@@ -205,8 +205,20 @@ public class ExprCompiler extends AnasintBaseVisitor<Object>{
         // Resolvemos expresiones
         List<String> expresiones = new ArrayList<>();
 
+        ExprCompiler exprLlamada = new ExprCompiler(this.almacenVariables, this.subprogramas);
         for(Anasint.ExprContext expr: ctx.expr()){
-            expresiones.add((String) visit(expr));
+            Object res = exprLlamada.visit(expr);
+            if(sub.isEsFuncion() && res != null && Variable.class.isInstance(res)){
+                Variable var = (Variable) res;
+                if(var.getTipo() == Anasint.SEQ_LOG || var.getTipo() == Anasint.SEQ_NUM){
+                    // Pasamos una copia para que la funcion no modifique la lista original
+                    expresiones.add(String.format("new ArrayList<>(%s)", var.getIdentificador()));
+                }else{
+                    expresiones.add((String) visit(expr));
+                }
+            }else{
+                expresiones.add((String) visit(expr));
+            }
         }
 
         return String.format("%s(%s)", identificador, String.join(", ", expresiones));

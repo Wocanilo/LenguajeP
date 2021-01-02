@@ -257,6 +257,12 @@ no son modificados. En el caso de valores de tipo *Integer* y *Boolean*, al ser 
 sin embargo, en el caso de objetos de tipo lista, debemos asegurar que su contenido no es modificado. Para ello debemos asegurar
 que se pasan copias de los objetos originales a las funciones llamadas con estos tipos.
 
+Los procedimientos, al tener parámetros de entrada de lectura y escritura, se representarán mediante funciones de tipo *Tupla*. Esto
+deberá ser así dado que, como se ha dicho anteriormente, objetos como *Integer* y *Boolean* son inmutables, por los que un procedimiento
+no puede modificarlos.
+
+Por ello, en los procedimientos habrá una devolución *implícita* de los parámetros de entrada.
+
 ## Decisión 3 (asignaciones)
 Dado que las asignaciones múltiples no existen en Java, será necesario emularlas. Esto significa emular la asignación
 paralela.
