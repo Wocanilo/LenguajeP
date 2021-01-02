@@ -35,12 +35,13 @@ public class Principal {
         anasem.visit(tree);
 
         // Interprete
-        //Interprete interp = new Interprete();
-        //interp.visit(tree);
+        Interprete interp = new Interprete();
+        interp.visit(tree);
 
         // Compilador
-        Compilador compilador = new Compilador();
-        compilador.visit(tree);
+
+        //Compilador compilador = new Compilador();
+        //compilador.visit(tree);
 
     }
 }

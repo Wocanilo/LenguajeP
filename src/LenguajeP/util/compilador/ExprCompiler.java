@@ -155,8 +155,9 @@ public class ExprCompiler extends AnasintBaseVisitor<Object>{
     @Override
     public Object visitExpr_booleana(Anasint.Expr_booleanaContext ctx){
         if(this.posicionVariableTmp == null) return null;
-        if(ctx.TRUE() != null) return true;
-        else return false;
+
+        if(ctx.TRUE() != null) return "true";
+        else return "false";
     }
 
     // (parametro de salida secuencia)

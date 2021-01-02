@@ -52,6 +52,8 @@ public class Variable {
     public void setValor(Object valor) {
         if(!this.RW) throw new RuntimeException(String.format("Runtime Error: tried to modify a read only variable '%s'", this.getIdentificador()));
 
+        if(Variable.class.isInstance(valor)) System.out.println("EEEEEEE");
+
         boolean throwError = false;
         if(this.getTipo() == Anasint.NUM && !Integer.class.isInstance(valor)) throwError = true;
         else if(this.getTipo() == Anasint.LOG && !Boolean.class.isInstance(valor)) throwError = true;
@@ -59,7 +61,7 @@ public class Variable {
             if(List.class.isInstance(valor)){
                 // Comprobamos que el tipo de cada elemento de la lista sea valido
                 for(Object elemento: (List<Object>) valor){
-                    if(Boolean.class.isInstance(elemento)){
+                    if(!Integer.class.isInstance(elemento)){
                         throwError = true;
                         break;
                     }
@@ -71,7 +73,7 @@ public class Variable {
             if(List.class.isInstance(valor)){
                 // Comprobamos que el tipo de cada elemento de la lista sea valido
                 for(Object elemento: (List<Object>) valor){
-                    if(Integer.class.isInstance(elemento)){
+                    if(!Boolean.class.isInstance(elemento)){
                         throwError = true;
                         break;
                     }

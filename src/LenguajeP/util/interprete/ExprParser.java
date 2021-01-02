@@ -271,7 +271,16 @@ public class ExprParser extends AnasintBaseVisitor<Object> {
     @Override
     public Object visitExpr_elementosSecuencia(Anasint.Expr_elementosSecuenciaContext ctx){
         if(ctx.expr_booleana() != null) return visit(ctx.expr_booleana());
-        else return visit(ctx.expr_entera());
+        else{
+            if(ctx.expr_entera().llamada_func_proc() != null){
+                // La funcion solo puede devolver un valor y hay que desencapsularlo
+                Object res = visit(ctx.expr_entera());
+                if(List.class.isInstance(res)){
+                    return ((List<Object>)res).get(0);
+                }
+            }
+            return visit(ctx.expr_entera());
+        }
     }
 
     // (parametro de salida elementos)

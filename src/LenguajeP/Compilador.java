@@ -8,6 +8,8 @@ import LenguajeP.util.interprete.subprograma.Mostrar;
 import LenguajeP.util.interprete.subprograma.Ultima_Posicion;
 import LenguajeP.util.interprete.subprograma.Vacia;
 
+import java.io.File;
+import java.io.PrintWriter;
 import java.util.*;
 
 public class Compilador extends AnasintBaseVisitor<Object> {
@@ -48,20 +50,13 @@ public class Compilador extends AnasintBaseVisitor<Object> {
     @Override
     public Object visitPrograma(Anasint.ProgramaContext ctx){
 
-        // Imports
-        Set<String> imports = new TreeSet<>();
-
-        // Cadena de la funcion main
-        StringBuilder variablesMain = new StringBuilder();
-
         // Procesamos las variables locales
+        StringBuilder variablesMain = new StringBuilder();
         VariablesParser variablesParser = new VariablesParser();
         this.almacenVariables = (HashMap<String, Variable>) variablesParser.visit(ctx.variables());
 
         // Declaramos las variables en el main
         for(Variable var: this.almacenVariables.values()){
-            // Debemos importar la clase Lista si existe alguna variable de tipo Lista
-            if(var.getTipo() == Anasint.SEQ_NUM || var.getTipo() == Anasint.SEQ_LOG) imports.add("java.util.List");
             // Espaciado
             variablesMain.append(String.format("%s\n",var.toJava()));
         }
@@ -69,12 +64,12 @@ public class Compilador extends AnasintBaseVisitor<Object> {
         // Procesamos los subprogramas
         SubprogramaParser subprogramasParser = new SubprogramaParser();
         this.subprogramas = (HashMap<String, Subprograma>) subprogramasParser.visit(ctx.subprogramas());
-        // Definimos predicados predefinidos
+        // Definimos subprogramas predefinidos
         subprogramas.put("mostrar", new Mostrar());
         subprogramas.put("vacia", new Vacia());
         subprogramas.put("ultima_posicion", new Ultima_Posicion());
 
-        // Traducimos los programas
+        // Traducimos los subprogramas
         StringBuilder subprogramasJava = new StringBuilder();
 
         for(Subprograma sub: subprogramas.values()){
@@ -85,33 +80,26 @@ public class Compilador extends AnasintBaseVisitor<Object> {
             subprogramasJava.append(String.format("%s\n",subprogramaToJava(sub)));
         }
 
-        // Formamos el programa
+        /*
+            Empieza formacion programa
+         */
         StringBuilder programa = new StringBuilder();
 
         // Añadimos los imports
-        for(String importUnico: imports){
-            programa.append(String.format("import %s;\n", importUnico));
-        }
-
+        programa.append("import java.util.ArrayList;\n");
+        programa.append("import java.util.List;\n");
 
         // Procesamos las instrucciones del programa
         StringBuilder instrucciones = new StringBuilder();
 
         InstruccionesCompiler instruccionesParser = new InstruccionesCompiler(this.almacenVariables, subprogramas);
+        // Creamos variables auxiliares
         instrucciones.append("List<Object> almacenTmp = new ArrayList<>();\n");
         instrucciones.append("Tupla almacenFuncion;\n");
 
         instrucciones.append(instruccionesParser.visit(ctx.instrucciones_programa()));
 
-        /*programa.append("\nclass ProgramaP {\n" +
-                this.tuplaClass +
-                subprogramasJava +
-                "   public static void main(String[] args) {\n" +
-                variablesMain +
-                instrucciones +
-                "   }\n" +
-                "}");*/
-
+        // Formamos todo el programa
         programa.append("\nclass EjemploCompilado {\n" +
                 this.tuplaClass +
                 subprogramasJava +
@@ -126,6 +114,12 @@ public class Compilador extends AnasintBaseVisitor<Object> {
 
         System.out.println("----- Salida -----");
         System.out.println(programa);
+
+        try (PrintWriter out = new PrintWriter("../Salida/EjemploCompilado.java")) {
+            out.println(programa);
+        }catch (java.io.FileNotFoundException e){
+            System.out.println("Error al abrir el archivo de salida.");
+        }
 
         return null;
     }
@@ -149,6 +143,7 @@ public class Compilador extends AnasintBaseVisitor<Object> {
         StringBuilder instrucciones = new StringBuilder();
         InstruccionesCompiler instruccionesParser = new InstruccionesCompiler(variablesLocales, this.subprogramas);
         instrucciones.append("List<Object> almacenTmp = new ArrayList<>();\n");
+        instrucciones.append("Tupla almacenFuncion;\n");
 
 
         if(sub.parametrosEntrada != null){

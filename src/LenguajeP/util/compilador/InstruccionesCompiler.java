@@ -315,7 +315,7 @@ public class InstruccionesCompiler extends AnasintBaseVisitor<Object> {
                     Variable var = (Variable) exprValue;
                     // si es una lista se modifica directamente
                     if(var.getTipo() != Anasint.SEQ_NUM && var.getTipo() != Anasint.SEQ_LOG ){
-                        result.append(String.format("%s = almacenFuncion.getValue(%s);\n", var.getIdentificador(), index));
+                        result.append(String.format("%s = (%s) almacenFuncion.getValor(%s);\n",var.getIdentificador(), this.idToString(var.getTipo()), index));
                     }
                 }
                 index++;

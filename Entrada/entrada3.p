@@ -30,22 +30,25 @@ SUBPROGRAMAS
         fmientras
         dev -1;
     FFUNCION
-    PROCEDIMIENTO pruebamodificacion(NUM n, NUM f, NUM d)
+    PROCEDIMIENTO triplica(NUM n)
         VARIABLES
         INSTRUCCIONES
-            n = 55;
+            n = n * 3;
     FPROCEDIMIENTO
 INSTRUCCIONES
     i = 0;
-    listafibo = [1,2,3,4,5,6,7,8,9,10];
+    e = 0;
+    // Creamos lista
+    listafibo = [0,0,0,0,0,0,0,0,a0,0];
+    // Sustituimos sus valores
     mientras(i < ultima_posicion(listafibo)) hacer
         listafibo[i] = fibonacci(i);
         i = i + 1;
     fmientras
     mostrar(listafibo);
+    // Buscamos posicion elemento
     mostrar(busca_entero_en_lista(21, listafibo));
+    // Triplicamos el valor de i
     mostrar(i);
-    pruebamodificacion(i, 12, listafibo);
+    triplica(i);
     mostrar(i);
-    mostrar(e);
-

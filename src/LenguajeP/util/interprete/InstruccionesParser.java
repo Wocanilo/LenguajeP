@@ -147,6 +147,21 @@ public class InstruccionesParser extends AnasintBaseVisitor<Object> {
             }else{
                 //Obtenemos nuevo valor
                 Object valorExpr = valoresExpresiones.get(i);
+                // Si es lista desencapsulamos los valores
+                if(List.class.isInstance(valorExpr)){
+                    List<Object> valoresLista = (List<Object>) valorExpr;
+                    List<Object> valoresSalida = new ArrayList<>();
+
+                    for(Object valor: valoresLista){
+                        if(Variable.class.isInstance(valor)){
+                            valoresSalida.add(((Variable)valor).getValor());
+                        }else{
+                            valoresSalida.add(valor);
+                        }
+                    }
+                    valorExpr = valoresSalida;
+                }
+
                 // Desencapsulamos las variables
                 if(Variable.class.isInstance(valorExpr)){
                     valorExpr = ((Variable)valorExpr).getValor();
