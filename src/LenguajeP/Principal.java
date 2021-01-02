@@ -40,8 +40,8 @@ public class Principal {
 
         // Compilador
 
-        //Compilador compilador = new Compilador();
-        //compilador.visit(tree);
+        Compilador compilador = new Compilador();
+        compilador.visit(tree);
 
     }
 }

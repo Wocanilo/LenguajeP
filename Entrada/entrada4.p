@@ -24,7 +24,6 @@ SUBPROGRAMAS
    FPROCEDIMIENTO
 INSTRUCCIONES
    j=0;
-   i=0;
    asignar(i,1*(j+2));
    mostrar(i);
    a=verdadero();

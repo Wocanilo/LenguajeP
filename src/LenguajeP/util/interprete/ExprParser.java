@@ -405,7 +405,9 @@ public class ExprParser extends AnasintBaseVisitor<Object> {
 
                 // Hay que desencapsular las variables
                 if(Variable.class.isInstance(expr)){
-                    exprValue = ((Variable)expr).getValor();
+                    // Si es llamada a procedimiento accedemos directamente el valor, haciendo bypass a la proteccion de lectura de variables indefinidas
+                    if(!subprograma.isEsFuncion()) exprValue = ((Variable)expr).getValorSinComprobacion();
+                    else exprValue = ((Variable)expr).getValor();
                 }else{
                     exprValue = expr;
                 }

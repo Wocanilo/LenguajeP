@@ -24,14 +24,16 @@ public class Variable {
     public Variable(String identificador, Integer tipo, Object valor){
         this.identificador = identificador;
         this.tipo = tipo;
-        this.setValor(valor);
+        if(valor == null) this.valor = null;
+        else this.setValor(valor);
     }
 
     // Declaración con valor usada por el intérprete
     public Variable(String identificador, Integer tipo, Object valor, Boolean RW){
         this.identificador = identificador;
         this.tipo = tipo;
-        this.setValor(valor);
+        if(valor == null) this.valor = null;
+        else this.setValor(valor);
         this.RW = RW;
     }
 
@@ -46,6 +48,10 @@ public class Variable {
     public Object getValor() {
         if(this.valor == null) throw new RuntimeException(String.format("Runtime error: tried to access variable '%s' with null value.",
                 this.getIdentificador()));
+        return valor;
+    }
+
+    public Object getValorSinComprobacion() {
         return valor;
     }
 
