@@ -133,11 +133,16 @@ public class Compilador extends AnasintBaseVisitor<Object> {
     String subprogramaToJava(Subprograma sub){
         HashMap<String, Variable> variablesLocales = new HashMap<>();
         variablesLocales.putAll(sub.getVariablesLocales()); // Variables locales declaradas en la seccion VARIABLES
-
         // Parametros de entrad
         String entrada = "";
         // Parametros de salida
         String salida = "";
+        // Seccion VARIABLES
+        StringBuilder seccionVariables = new StringBuilder();
+
+        for(Variable var: sub.getVariablesLocales().values()){
+            seccionVariables.append(String.format("%s\n", var.toJava()));
+        }
 
         // Procesamos las instrucciones del subprograma
         StringBuilder instrucciones = new StringBuilder();
@@ -179,9 +184,10 @@ public class Compilador extends AnasintBaseVisitor<Object> {
                 }
             }
 
-            if(sub.getParametrosSalida().size() == 1) return String.format("public static %s %s(%s){\n%s\n%s}", this.idToString(sub.getParametrosSalida().get(0).getTipo()), sub.getIdentificador(), entrada, salida, instrucciones);
+            if(sub.getParametrosSalida().size() == 1) return String.format("public static %s %s(%s){\n%s\n%s\n%s}", this.idToString(sub.getParametrosSalida().get(0).getTipo()), sub.getIdentificador(), entrada,
+                    salida, seccionVariables, instrucciones);
 
-            return String.format("public static Tupla %s(%s){\n%s\n%s}", sub.getIdentificador(), entrada, salida, instrucciones);
+            return String.format("public static Tupla %s(%s){\n%s\n%s\n%s}", sub.getIdentificador(), entrada, salida, seccionVariables, instrucciones);
         }else{
             // Procesamos instrucciones
             Object instruccionesSubprograma = sub.getInstruccionesSubprograma();
@@ -191,7 +197,7 @@ public class Compilador extends AnasintBaseVisitor<Object> {
                     instrucciones.append(instruccionesParser.visit(instruccion));
                 }
             }
-            return String.format("public static void %s(%s){\n%s}", sub.getIdentificador(), entrada, instrucciones);
+            return String.format("public static void %s(%s){\n%s\n%s}", sub.getIdentificador(), entrada, seccionVariables, instrucciones);
         }
     }
 }

@@ -2,7 +2,7 @@ package LenguajeP.util.compilador;
 
 import LenguajeP.Antlr.Anasint;
 import LenguajeP.Antlr.AnasintBaseVisitor;
-import LenguajeP.util.interprete.CondicionParser;
+import LenguajeP.util.compilador.CondicionCompiler;
 import LenguajeP.util.interprete.Subprograma;
 import LenguajeP.util.interprete.Variable;
 
@@ -13,14 +13,14 @@ public class InstruccionesCompiler extends AnasintBaseVisitor<Object> {
     private ExprCompiler exprParser;
     private ExprCompiler exprParserNoPosicion;
     private HashMap<String, Subprograma> subprogramas;
-    private CondicionParser condicionParser;
+    private CondicionCompiler condicionCompiler;
 
     public InstruccionesCompiler(HashMap<String, Variable> almacenVariables, HashMap<String, Subprograma> subprogramas){
         this.almacenVariables = almacenVariables;
         this.subprogramas = subprogramas;
         this.exprParser = new ExprCompiler(almacenVariables, subprogramas);
         this.exprParserNoPosicion = new ExprCompiler(almacenVariables, subprogramas, new HashMap<Variable, Integer>());
-        this.condicionParser = new CondicionParser(almacenVariables, subprogramas);
+        this.condicionCompiler = new CondicionCompiler(almacenVariables, subprogramas);
     }
 
     private String idToString(Integer id){
@@ -138,6 +138,7 @@ public class InstruccionesCompiler extends AnasintBaseVisitor<Object> {
 
         for(Anasint.ExprContext expr: ctx.expr()){
             if(expr.expr_secuencia() != null) {
+                if(expr.expr_secuencia().elementos_secuencia() == null) continue; // Si es lista vacia no hay colisiones
                 for(Object var: (List<Object>) this.exprParser.visit(expr.expr_secuencia())){
                     if(var != null) variablesExpresiones.add(var);
                 }
@@ -208,7 +209,16 @@ public class InstruccionesCompiler extends AnasintBaseVisitor<Object> {
                     }
                 }
             }else{
-                salida.append(String.format("%s = %s;\n", var.getIdentificador(), exprParserAsignacion.visit(ctx.expr(i))));
+                if(var.getTipo() == Anasint.SEQ_LOG || var.getTipo() == Anasint.SEQ_NUM) {
+                    if(identificadoresOAccesos.get(i).acceso_secuencia() != null){
+                        salida.append(String.format("%s.set(%s, %s);\n", var.getIdentificador(),
+                                exprParserAsignacion.visit(identificadoresOAccesos.get(i).acceso_secuencia().expr_entera()),
+                                exprParserAsignacion.visit(ctx.expr(i))));
+                    }
+
+                }else{
+                    salida.append(String.format("%s = %s;\n", var.getIdentificador(), exprParserAsignacion.visit(ctx.expr(i))));
+                }
             }
         }
 
@@ -222,7 +232,7 @@ public class InstruccionesCompiler extends AnasintBaseVisitor<Object> {
     // condicional: SI INICIO_PARENTESIS condicion_completa FIN_PARENTESIS ENTONCES instruccion_condicionalSi+ (SINO (instruccion_condicionalSino)+)? FSI;
     @Override
     public Object visitCondicional(Anasint.CondicionalContext ctx){
-        String condicion = ctx.condicion_completa().getText();
+        String condicion = (String) this.condicionCompiler.visit(ctx.condicion_completa());
         StringBuilder instruccionesSi = new StringBuilder();
         StringBuilder instruccionesSino = null;
 
@@ -260,7 +270,7 @@ public class InstruccionesCompiler extends AnasintBaseVisitor<Object> {
 
     @Override
     public Object visitIteracion(Anasint.IteracionContext ctx){
-        String condicion = ctx.condicion_completa().getText();
+        String condicion = (String) this.condicionCompiler.visit(ctx.condicion_completa());
         StringBuilder instrucciones = new StringBuilder();
 
         for(Anasint.Instruccion_iteracionContext instruccion: ctx.instruccion_iteracion()){
@@ -280,6 +290,11 @@ public class InstruccionesCompiler extends AnasintBaseVisitor<Object> {
         if(identificador.equalsIgnoreCase("mostrar")){
             if(ctx.expr() != null && ctx.expr().size() > 1) throw new RuntimeException("Compilation Error: call to mostrar can only have one parameter");
             return String.format("System.out.println(String.format(\"%s->%s\", %s));\n", ctx.expr(0).getText(), "%s", ctx.expr(0).getText());
+        }
+
+        if(identificador.equalsIgnoreCase("ultima_posicion")){
+            if(ctx.expr() != null && ctx.expr().size() > 1) throw new RuntimeException("Compilation Error: call to ultima_posicion can only have one parameter");
+            return String.format("%s.size();\n", ctx.expr(0).getText());
         }
 
         return String.format("%s;\n", ctx.getText());

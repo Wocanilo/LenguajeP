@@ -319,9 +319,6 @@ castear el valor al tipo correspondiente a la variable para su correcta asignaci
     b = (Integer) tmp.getValor(1);
    ```
 
-Por otro lado, la modificación de un elemento de una secuencia plantea un problema, dado que al utilizar un índice mayor a uno
-se aumenta el tamaño de la lista, será necesario crear una función que emule esta funcionalidad en Java.
-
 ## Decisión 4 (condiciones)
 Las condiciones en P se construyen a base de igualdades (==) y desigualdades (!=, <, >, <=, >=) de expresiones del mismo tipo.
 Además, estas condiciones se pueden concatenar mediante operadores de conjunción (&&) y disyunción (||), además
@@ -338,6 +335,11 @@ En Java, todo lo dicho anteriormente es cierto. Sin embargo, el orden de precede
 | !               | == !=           |
 | && &#124;&#124; | && &#124;&#124; |
 
+Para asegurar una correcta evaluación de las condiciones, se envolverán entre paréntesis las igualdades y desigualdades,
+para así asegurar que son evaluadas en orden correcto.
 
+## Decisión 5 (expresiones)
+Las expresiones en Java y P permiten el mismo tipo de operaciones, así como siguen el mismo orden de precedencia de sus operadores.
+Por tanto, no debemos realizar ninguna modificación a las expresiones, excepto en casos donde se produzcan colisiones.
 
 

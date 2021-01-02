@@ -80,8 +80,8 @@ public class ExprCompiler extends AnasintBaseVisitor<Object>{
                 }
             }
 
-            if(ctx.llamada_func_proc() != null){
-                System.out.println("Compilation: llamada a funcion.");
+            if(ctx.llamada_func_proc() != null && this.posicionVariableTmp !=null){
+                return visit(ctx.llamada_func_proc());
             }
 
             // Devolvemos el texto original
@@ -143,12 +143,20 @@ public class ExprCompiler extends AnasintBaseVisitor<Object>{
         Variable var = this.getVariable(identificador);
 
         if(var.getTipo() == Anasint.SEQ_LOG || var.getTipo() == Anasint.SEQ_NUM){
+            if(this.posicionVariableTmp != null) return String.format("%s.get(%s)", identificador, visit(ctx.expr_entera()));
             return var;
         }else{
             // No es una secuencia
             throw new RuntimeException(String.format("Compilation Error: variable '%s' is not a sequence.",
                     identificador));
         }
+    }
+
+    @Override
+    public Object visitExpr_booleana(Anasint.Expr_booleanaContext ctx){
+        if(this.posicionVariableTmp == null) return null;
+        if(ctx.TRUE() != null) return true;
+        else return false;
     }
 
     // (parametro de salida secuencia)
@@ -172,5 +180,35 @@ public class ExprCompiler extends AnasintBaseVisitor<Object>{
         }
 
         return elementos;
+    }
+
+    @Override
+    public Object visitLlamada_func_proc(Anasint.Llamada_func_procContext ctx){
+        String identificador = ctx.IDENTIFICADOR().getText();
+        Subprograma sub;
+
+        if(!this.subprogramas.containsKey(identificador)) throw new RuntimeException(String.format("Compilation Error: call to undefined subprogram. '%s'", identificador));
+        else sub = this.subprogramas.get(identificador);
+
+        if(!sub.isEsFuncion()) throw new RuntimeException(String.format("Compilation Error: call to procedure in expresion '%s'.", identificador));
+
+        if(identificador.equalsIgnoreCase("ultima_posicion")){
+            if(ctx.expr() != null && ctx.expr().size() > 1) throw new RuntimeException("Compilation Error: call to ultima_posicion can only have one parameter");
+            return String.format("%s.size()", ctx.expr(0).getText());
+        }
+
+        if(identificador.equalsIgnoreCase("vacia")){
+            if(ctx.expr() != null && ctx.expr().size() > 1) throw new RuntimeException("Compilation Error: call to vacia can only have one parameter");
+            return String.format("%s.isEmpty()", ctx.expr(0).getText());
+        }
+
+        // Resolvemos expresiones
+        List<String> expresiones = new ArrayList<>();
+
+        for(Anasint.ExprContext expr: ctx.expr()){
+            expresiones.add((String) visit(expr));
+        }
+
+        return String.format("%s(%s)", identificador, String.join(", ", expresiones));
     }
 }
