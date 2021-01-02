@@ -131,8 +131,7 @@ public class Compilador extends AnasintBaseVisitor<Object> {
     }
 
     String subprogramaToJava(Subprograma sub){
-        HashMap<String, Variable> variablesLocales = new HashMap<>();
-        variablesLocales.putAll(sub.getVariablesLocales()); // Variables locales declaradas en la seccion VARIABLES
+        HashMap<String, Variable> variablesLocales = new HashMap<>(sub.getVariablesLocales()); // Variables locales declaradas en la seccion VARIABLES
         // Parametros de entrad
         String entrada = "";
         // Parametros de salida

@@ -90,9 +90,7 @@ public class InstruccionesParser extends AnasintBaseVisitor<Object> {
             Object exprValue = exprParser.visit(expr);
             if(this.esFuncion(expr)){
                 // Se trata de una funcion, hay que desempaquetar los valores devueltos
-                for(Object elemento: (List<Object>) exprValue){
-                    valoresExpresiones.add(elemento);
-                }
+                valoresExpresiones.addAll((List<Object>) exprValue);
             }else{
                 valoresExpresiones.add(exprValue);
             }

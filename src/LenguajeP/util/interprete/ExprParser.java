@@ -115,7 +115,6 @@ public class ExprParser extends AnasintBaseVisitor<Object> {
 
                     // Si es variable desencapsulamos
                     if(expr != null && Variable.class.isInstance(expr)) {
-                        System.out.println(varOriginal);
                         varOriginal = (Variable)expr;
                         expr = ((Variable)expr).getValor();
                     }
@@ -358,8 +357,7 @@ public class ExprParser extends AnasintBaseVisitor<Object> {
         if(subprograma == null) throw new RuntimeException(String.format("Runtime error: function/procedure %s not declared", identificador));
 
         // Formamos el almacen de variables locales
-        HashMap<String, Variable> variablesLocales = new HashMap<>();
-        variablesLocales.putAll(subprograma.getVariablesLocales()); // Variables locales declaradas en la seccion VARIABLES
+        HashMap<String, Variable> variablesLocales = new HashMap<>(subprograma.getVariablesLocales()); // Variables locales declaradas en la seccion VARIABLES
 
         Object resultado;
         // Para los procedimientos, debemos poder traducir entre la variable de salida y la orignal

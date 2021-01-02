@@ -23,7 +23,7 @@ public class Mostrar extends Subprograma {
     public HashMap<String, Variable> Execute(HashMap<String, Variable> variablesLocales, HashMap<String, Subprograma> subprogramas){
         // Mostramos por pantalla el valor de la expresion pasada
         Variable var = variablesLocales.get("*");
-        System.out.println(String.format("%s -> %s", var.getIdentificador(), var.getValor()));
+        System.out.printf("%s -> %s%n", var.getIdentificador(), var.getValor());
         return new HashMap<>();
     }
 }

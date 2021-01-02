@@ -59,7 +59,7 @@ public class Anasem extends AnasintBaseVisitor<Object> {
     //     sino almacenar ident en funcionesYProcedimientos
     //)
     private void declaraFuncionProcedimiento(String identificador){
-        if(this.funcionesYProcedimientos.contains(identificador)) System.out.println(String.format("ERROR: Funcion/Procedimiento '%s' redeclarado.", identificador));
+        if(this.funcionesYProcedimientos.contains(identificador)) System.out.printf("ERROR: Funcion/Procedimiento '%s' redeclarado.%n", identificador);
         else this.funcionesYProcedimientos.add(identificador);
     }
 
@@ -83,8 +83,8 @@ public class Anasem extends AnasintBaseVisitor<Object> {
                 // Diferenciamos entre una redeclaración del mismo tipo y una con distinto tipo
                 Integer tipoAlmacenado = variables.get(identificador);
 
-                if(tipo.intValue() == tipoAlmacenado.intValue()) System.out.println(String.format("WARNING: Variable '%s' redeclarada como %s. Previamente declarada como: %s", identificador, this.idToString(tipo), this.idToString(tipoAlmacenado)));
-                if(tipo.intValue() != tipoAlmacenado.intValue()) System.out.println(String.format("ERROR: Variable '%s' redeclarada como %s. Previamente declarada como: %s", identificador, this.idToString(tipo), this.idToString(tipoAlmacenado)));
+                if(tipo.intValue() == tipoAlmacenado.intValue()) System.out.printf("WARNING: Variable '%s' redeclarada como %s. Previamente declarada como: %s%n", identificador, this.idToString(tipo), this.idToString(tipoAlmacenado));
+                if(tipo.intValue() != tipoAlmacenado.intValue()) System.out.printf("ERROR: Variable '%s' redeclarada como %s. Previamente declarada como: %s%n", identificador, this.idToString(tipo), this.idToString(tipoAlmacenado));
 
             }
         }
@@ -279,7 +279,7 @@ public class Anasem extends AnasintBaseVisitor<Object> {
 
         // Si la funcion/proc no se encuentra declarado
         if(!this.funcionesYProcedimientos.contains(nombreFuncionProc)){
-            System.out.println(String.format("ERROR: Llamada a funcion/procedimiento '%s' no declarado", nombreFuncionProc));
+            System.out.printf("ERROR: Llamada a funcion/procedimiento '%s' no declarado%n", nombreFuncionProc);
         }
 
         return null; // No es necesario visitar sus hijos (no tiene)
@@ -351,7 +351,7 @@ public class Anasem extends AnasintBaseVisitor<Object> {
 
             if (!variablesScope.containsKey(identificador)) {
                 // Aviso de que la variable usada no existe en el contexto actual
-                System.out.println(String.format("ERROR: La variable '%s' no existe en el contexto actual '%s'", identificador, this.scopeActual));
+                System.out.printf("ERROR: La variable '%s' no existe en el contexto actual '%s'%n", identificador, this.scopeActual);
                 return Anasint.NO_TIPO;
             } else {
                 Integer tipoIdent = variablesScope.get(identificador);
@@ -412,7 +412,7 @@ public class Anasem extends AnasintBaseVisitor<Object> {
             if(tipoSecuencia == Anasint.NO_TIPO) return Anasint.NO_TIPO; // Si es no_tipo la secuencia es no_tipo
             if(tipoSecuencia == Anasint.LOG) return Anasint.SEQ_LOG;
             else if(tipoSecuencia == Anasint.NUM) return Anasint.SEQ_NUM;
-            else System.out.println(String.format("ERROR: Secuencia con tipo inválido. '%s'", this.idToString(tipoSecuencia)));
+            else System.out.printf("ERROR: Secuencia con tipo inválido. '%s'%n", this.idToString(tipoSecuencia));
             return Anasint.NO_TIPO;
         }
     }
@@ -480,7 +480,7 @@ public class Anasem extends AnasintBaseVisitor<Object> {
 
                         tipo = this.calculaTipoFuncion(identificador);
                         if(tipo != Anasint.NUM) {
-                            System.out.println(String.format("ERROR: se trató de hacer negativo un valor de tipo '%s'. '%s'", this.idToString(tipo), ctx.getText()));
+                            System.out.printf("ERROR: se trató de hacer negativo un valor de tipo '%s'. '%s'%n", this.idToString(tipo), ctx.getText());
                             return Anasint.NO_TIPO;
                         }
 
@@ -492,7 +492,7 @@ public class Anasem extends AnasintBaseVisitor<Object> {
                         tipo = this.calculaTipoVariable(identificador);
 
                         if(tipo != Anasint.NUM) {
-                            System.out.println(String.format("ERROR: se trató de hacer negativo un valor de tipo '%s'. '%s'", this.idToString(tipo), ctx.getText()));
+                            System.out.printf("ERROR: se trató de hacer negativo un valor de tipo '%s'. '%s'%n", this.idToString(tipo), ctx.getText());
                             return Anasint.NO_TIPO;
                         }
 
@@ -504,7 +504,7 @@ public class Anasem extends AnasintBaseVisitor<Object> {
                         tipo = this.calculaTipoAccesoSecuencia(identificador);
 
                         if(tipo != Anasint.NUM) {
-                            System.out.println(String.format("ERROR: se trató de hacer negativo un valor de tipo '%s'. '%s'", this.idToString(tipo), ctx.getText()));
+                            System.out.printf("ERROR: se trató de hacer negativo un valor de tipo '%s'. '%s'%n", this.idToString(tipo), ctx.getText());
                             return Anasint.NO_TIPO;
                         }
 
@@ -544,7 +544,7 @@ public class Anasem extends AnasintBaseVisitor<Object> {
         }
 
         // Expresion sin tipo, mensaje de error
-        if(tipo == Anasint.NO_TIPO) System.out.println(String.format("ERROR: Expresion '%s' sin tipo", ctx.getText()));
+        if(tipo == Anasint.NO_TIPO) System.out.printf("ERROR: Expresion '%s' sin tipo%n", ctx.getText());
 
         return tipo;
     }
@@ -565,8 +565,8 @@ public class Anasem extends AnasintBaseVisitor<Object> {
 
         if(tipoVariable == Anasint.NO_TIPO || tipoExpr == Anasint.NO_TIPO){
             // Alguno de los dos es no_tipo
-            System.out.println(String.format("ERROR: Asignación indefinida. Se trató de asignar a la variable '%s' con tipo '%s' " +
-                    "el valor de la expresión '%s' de tipo '%s'", identificador, this.idToString(tipoVariable), expr.getText(), this.idToString(tipoExpr)));
+            System.out.printf("ERROR: Asignación indefinida. Se trató de asignar a la variable '%s' con tipo '%s' " +
+                    "el valor de la expresión '%s' de tipo '%s'%n", identificador, this.idToString(tipoVariable), expr.getText(), this.idToString(tipoExpr));
 
             return Anasint.NO_TIPO;
         }else if(tipoVariable != tipoExpr){
@@ -577,10 +577,10 @@ public class Anasem extends AnasintBaseVisitor<Object> {
                 return tipoVariable;
             }
 
-            if(esAccesoSecuencia) System.out.println(String.format("ERROR: Los tipos de la asignación no coinciden. Se trató de asignar a un elemento de '%s' de tipo '%s' " +
-                    "el valor de la expresión '%s' de tipo '%s'", identificador, this.idToString(tipoVariable), expr.getText(), this.idToString(tipoExpr)));
-            else System.out.println(String.format("ERROR: Los tipos de la asignación no coinciden. Se trató de asignar a la variable '%s' con tipo '%s' " +
-                    "el valor de la expresión '%s' de tipo '%s'", identificador, this.idToString(tipoVariable), expr.getText(), this.idToString(tipoExpr)));
+            if(esAccesoSecuencia) System.out.printf("ERROR: Los tipos de la asignación no coinciden. Se trató de asignar a un elemento de '%s' de tipo '%s' " +
+                    "el valor de la expresión '%s' de tipo '%s'%n", identificador, this.idToString(tipoVariable), expr.getText(), this.idToString(tipoExpr));
+            else System.out.printf("ERROR: Los tipos de la asignación no coinciden. Se trató de asignar a la variable '%s' con tipo '%s' " +
+                    "el valor de la expresión '%s' de tipo '%s'%n", identificador, this.idToString(tipoVariable), expr.getText(), this.idToString(tipoExpr));
 
             return Anasint.NO_TIPO;
         }
@@ -615,27 +615,27 @@ public class Anasem extends AnasintBaseVisitor<Object> {
                     List<Integer> tiposFuncion = this.tipoFunciones.get(identificador);
 
                     // Si no concide el numero de elementos devueltos por la funcion con el numero de identificadores -> ERROR
-                    if(variablesAsignacion.size() != tiposFuncion.size()) System.out.println(String.format("ERROR: Asignacion múltiple erronea, no coincide el número de variables con el número" +
-                            " de parámetros devueltos '%s'", ctx.getText()));
+                    if(variablesAsignacion.size() != tiposFuncion.size()) System.out.printf("ERROR: Asignacion múltiple erronea, no coincide el número de variables con el número" +
+                            " de parámetros devueltos '%s'%n", ctx.getText());
                     else{
                         // Coinciden en número, comprobamos si coinciden en tipo
                         for(int i=0; i<tiposFuncion.size(); i++){
                             Integer tipoVariable = this.calculaTipoVariable(variablesAsignacion.get(i).getText());
                             Integer tipoFuncion = tiposFuncion.get(i);
                             // No coinciden en tipo -> ERROR
-                            if(tipoVariable != tipoFuncion) System.out.println(String.format("ERROR: Los tipos de la asignación no coinciden. Se trató de asignar a la variable '%s' con tipo '%s' " +
-                                    "el valor de la funcion '%s' de tipo '%s'", variablesAsignacion.get(i).getText(), this.idToString(tipoVariable), identificador, this.idToString(tipoFuncion)));
+                            if(tipoVariable != tipoFuncion) System.out.printf("ERROR: Los tipos de la asignación no coinciden. Se trató de asignar a la variable '%s' con tipo '%s' " +
+                                    "el valor de la funcion '%s' de tipo '%s'%n", variablesAsignacion.get(i).getText(), this.idToString(tipoVariable), identificador, this.idToString(tipoFuncion));
                         }
                     }
                 }
             }else{
                 // No es llamada a función -> ERROR
-                System.out.println(String.format("ERROR: Numero incorrecto de elementos en la asignación '%s'", ctx.getText()));
+                System.out.printf("ERROR: Numero incorrecto de elementos en la asignación '%s'%n", ctx.getText());
             }
         }else{
             // Comprobamos que haya el mismo número de variables que de expresiones
             // Si no hay el mismo numero no podemos comprobar el tipado
-            if(variablesAsignacion.size() != expresionesAsignacion.size()) System.out.println(String.format("ERROR: número incorrecto de elementos en la asignación '%s'", ctx.getText()));
+            if(variablesAsignacion.size() != expresionesAsignacion.size()) System.out.printf("ERROR: número incorrecto de elementos en la asignación '%s'%n", ctx.getText());
             else{
                 // Comprobamos el tipado de cada pareja de la asignacion
                 for(int i=0; i<expresionesAsignacion.size(); i++){
