@@ -834,5 +834,4 @@ public class Mostrar extends Subprograma {
 }
 ```
 
-Esta forma de crear subprogramas permite añadir rápidamente cualquier subprograma predefinido al lenguaje. Sería posible
-añadir subprogramas para añadir y eliminar elementos de las secuencias, para así implementar secuencias de tamaño variable.
+Esta forma de crear subprogramas permite añadir rápidamente cualquier subprograma predefinido al lenguaje.
