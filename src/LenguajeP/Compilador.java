@@ -99,9 +99,7 @@ public class Compilador extends AnasintBaseVisitor<Object> {
                 tuplaClass +
                 subprogramasJava +
                 "public static void main(String[] args) {\n" +
-                "// Seccion VARIABLES\n" +
                 variablesMain +
-                "// Seccion INSTRUCCIONES\n" +
                 instrucciones +
                 "   }\n" +
                 "}");
