@@ -388,4 +388,9 @@ public class InstruccionesCompiler extends AnasintBaseVisitor<Object> {
 
         return res;
     }
+
+    @Override
+    public Object visitRuptura(Anasint.RupturaContext ctx){
+        return "break;\n";
+    }
 }

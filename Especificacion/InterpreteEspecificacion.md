@@ -510,7 +510,9 @@ La instruccion de asignacion actualiza el valor de las variables contenidas en e
 
 Esta asignacion puede ser simple, cuando se trata de una sola variable, o multiple, cuando se trata de varias.
 
-Las asignaciones permiten modificar el valor de los elementos de una secuencia. Si se utiliza un índice una unidad mayor al último elemento, el valor se añadirá a la lista.
+Las asignaciones permiten modificar el valor de los elementos de una secuencia. 
+
+*Ampliación de P*: Si se utiliza un índice una unidad mayor al último elemento, el valor se añadirá a la lista.
 No es posible reducir el tamaño de una lista.
 
 ```
@@ -650,13 +652,18 @@ almacenSubprogramas = {"AskTheUniverse": Subprograma("AskTheUniverse", [Parametr
     ```entrada -> Variable("valor", NUM, 1)```
     2. Modificamos la variable
     ```Variable("valor", NUM, 1).setValor(42)```
+       
+*Nota*: Se considera que pasar dos veces la misma variable a un procedimiento es incorrecto, por lo que
+el valor final de la variable dependerá de su posición en la llamada.
 
 ##### Interpretar(condicional)
-Las instrucciones condicionales ejecutan un bloque de código en función de si se cumple una condición o no.
+Las instrucciones condicionales ejecutan un bloque de código en función de si se cumple una condición o no. Si se encuentra dentro de un bloque iterativo se puede utilizar la instrucción ruptura para finalizar la ejecución del
+bucle.
 
 Existen dos tipos de estructuras condicionales:
 - si-fsi `Ejecuta el bloque de código contenido de cumplirse la condición`
 - si-sino-fsi `Añade una rama que se interpreta en caso de no cumplirse la condición`
+
 
 Su implementación es sencilla:
 1. Se resuelve la condición.
@@ -755,7 +762,9 @@ INSTRUCCIONES
 ##### Intepretar(ruptura)
 La instrucción de ruptura provoca que el programa abandone el bloque de código en el que se encuentra la instrucción.
 
-Si la instrucción de *ruptura* se encuentra dentro de una estructura condicional, la ruptura se propaga a los bloques superiores, acabando la ejecución del primer bucle iterativo encontrado (de existir).
+Si la instrucción de *ruptura* se encuentra dentro de una estructura condicional, la ruptura se propaga a los bloques superiores, acabando la ejecución del primer bucle iterativo encontrado.
+
+Usar la instrucción fuera de un bloque iterativo es *ilegal*.
 
 **Ejemplo ruptura anidada**
 ```
@@ -797,4 +806,33 @@ i -> 1
 A efectos prácticos consideraremos que se trata de un procedimiento, por lo que no recibe un tratamiento especial
 por parte del intérprete.
 
-Simplemente crearemos una clase que herede de *Subprograma* y sobreescriba el constructor y el método *Execute*
+Simplemente crearemos una clase que herede de *Subprograma* y sobreescriba el método *Execute*
+
+**Clase Mostrar**
+```java
+public class Mostrar extends Subprograma {
+    public Mostrar(){
+        this.identificador = "mostrar";
+        this.parametrosEntrada = new ArrayList<>();
+        /*
+                El identificador de parámetro * provoca que el iterprete no enmascare los parámetros de entrada.
+                El tipo NO_TIPO deshabilita las comprobaciones de tipado.
+         */
+        this.parametrosEntrada.add(new Parametro("*", Anasint.NO_TIPO));
+        // No hay variables declaradas
+        this.almacenVariables = new HashMap<>();
+        // No hay parametros de salida pues es procedimiento
+        this.parametrosSalida = new ArrayList<>();
+        this.esFuncion = false;
+    }
+
+    @Override
+    public HashMap<String, Variable> Execute(HashMap<String, Variable> variablesLocales, HashMap<String, Subprograma> subprogramas) {
+        // Mostramos por pantalla el valor de la expresion pasada
+        System.out.println(...);
+    }
+}
+```
+
+Esta forma de crear subprogramas permite añadir rápidamente cualquier subprograma predefinido al lenguaje. Sería posible
+añadir subprogramas para añadir y eliminar elementos de las secuencias, para así implementar secuencias de tamaño variable.

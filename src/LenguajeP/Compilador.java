@@ -170,7 +170,7 @@ public class Compilador extends AnasintBaseVisitor<Object> {
                 if(variablesLocales.containsKey(var)) throw new RuntimeException(String.format("Compilation Error: redeclared variable '%s' in subprogram '%s'", var.getIdentificador(),
                         sub.identificador));
                 variablesLocales.put(var.getIdentificador(), var);
-                paramSalida.add(String.format("%s %s;", this.idToString(par.getTipo()), par.getIdentificador()));
+                paramSalida.add(String.format("%s %s = null;", this.idToString(par.getTipo()), par.getIdentificador()));
             }
             salida = String.join("\n", paramSalida);
 

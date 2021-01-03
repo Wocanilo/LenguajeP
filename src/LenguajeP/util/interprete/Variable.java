@@ -58,8 +58,6 @@ public class Variable {
     public void setValor(Object valor) {
         if(!this.RW) throw new RuntimeException(String.format("Runtime Error: tried to modify a read only variable '%s'", this.getIdentificador()));
 
-        if(Variable.class.isInstance(valor)) System.out.println("EEEEEEE");
-
         boolean throwError = false;
         if(this.getTipo() == Anasint.NUM && !Integer.class.isInstance(valor)) throwError = true;
         else if(this.getTipo() == Anasint.LOG && !Boolean.class.isInstance(valor)) throwError = true;
@@ -135,7 +133,7 @@ public class Variable {
 
     public String toJava(){
         // Traduce una variable a su declaración en Java
-        return String.format("%s %s;", this.idToString(this.getTipo()), this.getIdentificador());
+        return String.format("%s %s = null;", this.idToString(this.getTipo()), this.getIdentificador());
     }
 
 }

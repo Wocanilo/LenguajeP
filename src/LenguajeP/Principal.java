@@ -35,11 +35,11 @@ public class Principal {
         anasem.visit(tree);
 
         // Interprete
-        Interprete interp = new Interprete();
-        interp.visit(tree);
+        // TODO: pasar referencias en los procedimientos para evitar problemas
+        //Interprete interp = new Interprete();
+        //interp.visit(tree);
 
         // Compilador
-
         Compilador compilador = new Compilador();
         compilador.visit(tree);
 

@@ -203,10 +203,7 @@ tabla de traducción de tipos.
 | SEQ(NUM)  | List\<Integer> |
 | SEQ(LOG)  | List\<Boolean> |
 
-Dado que solo se utilizan clases para representar los tipos de P, al no inicializar una variable esta tiene un valor
-indefinido o nulo por defecto.
-
-Será necesario importar la clase *List* si el programa contiene alguna variable de tipo Lista.
+Será necesario declarar las variables con valor *null* para así permitir la llamada de procedimientos con variable sin valor.
 
 Para el parseo de las variables usaremos la clase *VariablesParser* usada en el intérprete, obteniendo así una estructura de datos
 con instancias de la clase *Variable*. A esta clase añadiremos un método *toJava* que devolverá la representación en el lenguaje Java
@@ -262,6 +259,75 @@ deberá ser así dado que, como se ha dicho anteriormente, objetos como *Integer
 no puede modificarlos.
 
 Por ello, en los procedimientos habrá una devolución *implícita* de los parámetros de entrada.
+
+**Ejemplo Función con un valor de retorno**
+
+*Lenguaje P*
+```
+FUNCION fibonacci(NUM n) dev(NUM res)
+    VARIABLES
+    INSTRUCCIONES
+        si(n <= 1) entonces
+            dev n;
+        fsi
+        dev fibonacci(n-1) + fibonacci(n-2);
+FFUNCION
+```
+
+*Traducción a Java*
+```java
+public static Integer fibonacci(Integer n){
+    Integer res = null;
+    
+    if(n<=1){
+        return n;
+    }
+    
+    return fibonacci(n-1)+fibonacci(n-2);
+}
+```
+
+**Ejemplo función con múltiples valores de retorno**
+
+*Lenguaje P*
+```
+FUNCION prueba(NUM a) dev(NUM b, LOG c)
+    VARIABLES
+    INSTRUCCIONES
+        dev a,a-1;
+FFUNCION
+```
+
+*Traducción a Java*
+```java
+public static Tupla prueba(Integer a){
+    Integer b = null;
+    Boolean c = null;
+    
+    return new Tupla(a, a - 1);
+}
+```
+
+**Ejemplo Procedimiento**
+
+*Lenguaje P*
+
+```
+PROCEDIMIENTO triplica(NUM n)
+    VARIABLES
+    INSTRUCCIONES
+        n = n * 3;
+FPROCEDIMIENTO
+```
+
+*Traducción a Java*
+
+```java
+public static Tupla triplica(Integer n){
+    n = n * 3;
+    return new Tupla(n);
+}
+```
 
 ## Decisión 3 (asignaciones)
 Dado que las asignaciones múltiples no existen en Java, será necesario emularlas. Esto significa emular la asignación
@@ -348,4 +414,139 @@ para así asegurar que son evaluadas en orden correcto.
 Las expresiones en Java y P permiten el mismo tipo de operaciones, así como siguen el mismo orden de precedencia de sus operadores.
 Por tanto, no debemos realizar ninguna modificación a las expresiones, excepto en casos donde se produzcan colisiones.
 
+El único lugar donde se pueden producir colisiones es en las asignaciones múltiples.
+Tal y como se ha especificado anteriormente.
 
+## Decisión 6 (rupturas)
+Las rupturas funcionan igual que en P, permiten interrumpir la ejecución de un bloque de código. Tan solo pueden ser usadas
+en bloques iterativos o en bloques condicionales para finalizar un bloque iterativo.
+
+Las rupturas en Java se representan con la palabra clave **return**.
+
+## Decisión 7 (llamadas)
+Como se ha explicado en las asignaciones, el único problema de las llamadas es emular
+las variables de solo lectura en las llamadas a funciones y las variables de escritura en
+los procedimientos. La solución a ambos problemas fue descrita anteriormente.
+
+En el caso de las funciones pasaremos copias de los objetos original (tan solo para secuencias)
+y en el caso de los procedimientos usaremos la devolución implícita de los valores de entrada para
+emular su funcionamiento.
+
+*Nota: al igual que el intérprete, una llamada a un procedimiento con la misma varaible en varios parámetros
+se considera incorrecto*
+
+## Decisión 8 (devolución)
+La devolución de resultados presenta el problema descrito anteriormente, dado que Java solo permite
+la devolución de un valor por función, será necesario emular la devolución de valores múltiples.
+
+Para ello se devolverá un objeto *Tupla* con los valores devueltos por la función.
+
+**Ejemplo**
+
+*Lenguaje P*
+```
+FUNCION prueba(NUM a) dev(NUM b, LOG c)
+    VARIABLES
+    INSTRUCCIONES
+        dev a,a-1;
+FFUNCION
+```
+
+*Traducción a Java*
+```java
+public static Tupla prueba(Integer a){
+        Integer b = null;
+        Boolean c = null;
+
+        return new Tupla(a, a - 1);
+}
+```
+
+## Decisión 9 (condicional)
+Las instrucciones condicionales ejecutan un bloque de código en función de si se cumple una condición o no. Si se encuentra dentro de un bloque iterativo se puede utilizar la instrucción ruptura para finalizar la ejecución del
+bucle.
+
+Existen dos tipos de estructuras condicionales:
+- si-fsi `Ejecuta el bloque de código contenido de cumplirse la condición`
+- si-sino-fsi `Añade una rama que se interpreta en caso de no cumplirse la condición`
+
+La estructura `si-fsi` se compilará a una estructura `if`.
+
+**Ejemplo si-fsi**
+
+*Lenguaje P*
+
+```
+si (vacia(lista)) entonces
+    dev -1;
+fsi
+```
+*Traducción a Java*
+```java
+if(lista.isEmpty()){
+    return -1;
+}
+```
+
+Por otro lado, la estructura `si-sino-fsi` se compilará a una estructura `if-else`
+
+**Ejemplo si-sino-fsi**
+
+*Lenguaje P*
+
+```
+si (vacia(lista)) entonces
+    dev -1;
+sino
+   dev ultima_posicion(lista);
+fsi
+```
+*Traducción a Java*
+```java
+if(lista.isEmpty()){
+    return -1;
+}else{
+    return lista.size();
+}
+```
+
+## Decisión 9 (iteración)
+Las instrucciones iterativas permiten repetir la interpretación de un bloque de código mientras
+se cumpla una condición.
+
+Se compilará a una estructura `while`, dado que funciona exactamente
+igual que `mientras-fmientras` en P.
+
+**Ejemplo mientras-fmientras**
+
+*Lenguaje P*
+```
+mientras(i < ultima_posicion(listafibo)) hacer
+    listafibo[i] = fibonacci(i);
+    i = i + 1;
+fmientras
+```
+
+*Traducción a Java*
+```java
+while(i < listafibo.size()){
+    listafibo.set(i, fibonacci(i));
+    i = i + 1;
+}
+```
+
+## Decisión 10 (mostrar por consola)
+Se sustituirán las llamadas a `mostrar` por llamadas a 
+`System.out.println`
+
+**Ejemplo mostrar**
+
+*Lenguaje P*
+```
+mostrar(i);
+```
+
+*Traducción a P*
+```java
+System.out.println(String.format("i->%s", i));
+```
