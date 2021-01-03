@@ -203,7 +203,7 @@ tabla de traducción de tipos.
 | SEQ(NUM)  | List\<Integer> |
 | SEQ(LOG)  | List\<Boolean> |
 
-Será necesario declarar las variables con valor *null* para así permitir la llamada de procedimientos con variable sin valor.
+Será necesario declarar las variables con valor *null* para así permitir la llamada de procedimientos con variables sin valor.
 
 Para el parseo de las variables usaremos la clase *VariablesParser* usada en el intérprete, obteniendo así una estructura de datos
 con instancias de la clase *Variable*. A esta clase añadiremos un método *toJava* que devolverá la representación en el lenguaje Java
@@ -250,7 +250,7 @@ Toda función que devuelva múltiples valores devolverá un objeto *Tupla*. El r
 el resultado de manera directa. De esta forma seguiremos beneficiándonos de la comprobación de tipos de Java.
 
 Por otro lado, dado que los parámetros de entrada de una función son de solo lectura, debemos asegurar que sus valores
-no son modificados. En el caso de valores de tipo *Integer* y *Boolean*, al ser objetos inmutables, no debemos hacer nada,
+no son modificados. En el caso de valores de tipo *Integer* y *Boolean*, al ser objetos finales, no debemos hacer nada,
 sin embargo, en el caso de objetos de tipo lista, debemos asegurar que su contenido no es modificado. Para ello debemos asegurar
 que se pasan copias de los objetos originales a las funciones llamadas con estos tipos.
 
@@ -349,7 +349,7 @@ expresiones de la asignación.
 
 **Ejemplos**
 
-*Asignación múltiple sin variables*
+*Asignación múltiple sin colisiones*
 
 - *Lenguaje P*
     ```
@@ -361,7 +361,7 @@ expresiones de la asignación.
     b = 23;
     ```
 
-*Asignación múltiple con variables*
+*Asignación múltiple con colisiones*
 - *Lenguaje P*
     ```
     a, b = 12, a + 1;
@@ -386,9 +386,9 @@ castear el valor al tipo correspondiente a la variable para su correcta asignaci
     ```
 - *Lenguaje Java*
    ```
-    Tupla tmp = devuelve_2_valores();
-    a = (Integer) tmp.getValor(0);
-    b = (Integer) tmp.getValor(1);
+    Tupla almacenFuncion = devuelve_2_valores();
+    a = (Integer) almacenFuncion.getValor(0);
+    b = (Integer) almacenFuncion.getValor(1);
    ```
 
 ## Decisión 4 (condiciones)
@@ -428,15 +428,15 @@ Como se ha explicado en las asignaciones, el único problema de las llamadas es 
 las variables de solo lectura en las llamadas a funciones y las variables de escritura en
 los procedimientos. La solución a ambos problemas fue descrita anteriormente.
 
-En el caso de las funciones pasaremos copias de los objetos original (tan solo para secuencias)
+En el caso de las funciones pasaremos copias de los objetos originales (tan solo para secuencias)
 y en el caso de los procedimientos usaremos la devolución implícita de los valores de entrada para
 emular su funcionamiento.
 
-*Nota: al igual que el intérprete, una llamada a un procedimiento con la misma varaible en varios parámetros
+*Nota: al igual que en el intérprete, una llamada a un procedimiento con la misma variable en varios parámetros
 se considera incorrecto*
 
 ## Decisión 8 (devolución)
-La devolución de resultados presenta el problema descrito anteriormente, dado que Java solo permite
+La devolución de resultados presenta el problema descrito anteriormente. Dado que Java solo permite
 la devolución de un valor por función, será necesario emular la devolución de valores múltiples.
 
 Para ello se devolverá un objeto *Tupla* con los valores devueltos por la función.
