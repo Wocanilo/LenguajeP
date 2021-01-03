@@ -12,7 +12,6 @@ import javax.swing.*;
 import java.util.Arrays;
 
 public class Principal {
-    // TODO: crear clase para LOG para mostrar T y F en la salida
     public static void main(String[] args) throws Exception{
         CharStream input = CharStreams.fromFileName(args[0]);
         Analex analex = new Analex(input);
@@ -35,13 +34,12 @@ public class Principal {
         anasem.visit(tree);
 
         // Interprete
-        // TODO: pasar referencias en los procedimientos para evitar problemas
         //Interprete interp = new Interprete();
         //interp.visit(tree);
 
         // Compilador
-        Compilador compilador = new Compilador();
-        compilador.visit(tree);
+        //Compilador compilador = new Compilador();
+        //compilador.visit(tree);
 
     }
 }

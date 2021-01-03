@@ -8,27 +8,11 @@ import LenguajeP.util.interprete.subprograma.Mostrar;
 import LenguajeP.util.interprete.subprograma.Ultima_Posicion;
 import LenguajeP.util.interprete.subprograma.Vacia;
 
-import java.io.File;
 import java.io.PrintWriter;
 import java.util.*;
 
 public class Compilador extends AnasintBaseVisitor<Object> {
-    private HashMap<String, Variable> almacenVariables;
     private HashMap<String, Subprograma> subprogramas;
-    // TODO: lo que haremos será analizar el árbol dos veces, la primera vez se identifican errores, como devolver en un procedimiento o devolver más valores de los declarados en una función
-    // Luego el segundo análisis compila el programa con la información obtenida del primer parseo
-    // Asi podemos decidir qué subprogramas necesitan una declaración de almacenTmp y demas. Asi como conocer los imports necesarios para que funcione el programa
-
-    private String tuplaClass = "    static class Tupla {\n" +
-            "        private Object[] valores;\n" +
-            "        public Tupla(Object... valores){\n" +
-            "            this.valores = valores;\n" +
-            "        }\n" +
-            "        public Object getValor(Integer elemento) {\n" +
-            "            if(elemento < this.valores.length) return this.valores[elemento];\n" +
-            "            throw new RuntimeException(\"Runtime Error: out of bound access in Tupla\");\n" +
-            "        }\n" +
-            "    }\n\n";
 
     private String idToString(Integer id){
         switch(id){
@@ -53,10 +37,10 @@ public class Compilador extends AnasintBaseVisitor<Object> {
         // Procesamos las variables locales
         StringBuilder variablesMain = new StringBuilder();
         VariablesParser variablesParser = new VariablesParser();
-        this.almacenVariables = (HashMap<String, Variable>) variablesParser.visit(ctx.variables());
+        HashMap<String, Variable> almacenVariables = (HashMap<String, Variable>) variablesParser.visit(ctx.variables());
 
         // Declaramos las variables en el main
-        for(Variable var: this.almacenVariables.values()){
+        for(Variable var: almacenVariables.values()){
             // Espaciado
             variablesMain.append(String.format("%s\n",var.toJava()));
         }
@@ -92,7 +76,7 @@ public class Compilador extends AnasintBaseVisitor<Object> {
         // Procesamos las instrucciones del programa
         StringBuilder instrucciones = new StringBuilder();
 
-        InstruccionesCompiler instruccionesParser = new InstruccionesCompiler(this.almacenVariables, subprogramas);
+        InstruccionesCompiler instruccionesParser = new InstruccionesCompiler(almacenVariables, subprogramas);
         // Creamos variables auxiliares
         instrucciones.append("List<Object> almacenTmp = new ArrayList<>();\n");
         instrucciones.append("Tupla almacenFuncion;\n");
@@ -100,8 +84,19 @@ public class Compilador extends AnasintBaseVisitor<Object> {
         instrucciones.append(instruccionesParser.visit(ctx.instrucciones_programa()));
 
         // Formamos todo el programa
+        String tuplaClass = "    static class Tupla {\n" +
+                "        private Object[] valores;\n" +
+                "        public Tupla(Object... valores){\n" +
+                "            this.valores = valores;\n" +
+                "        }\n" +
+                "        public Object getValor(Integer elemento) {\n" +
+                "            if(elemento < this.valores.length) return this.valores[elemento];\n" +
+                "            throw new RuntimeException(\"Runtime Error: out of bound access in Tupla\");\n" +
+                "        }\n" +
+                "    }\n\n";
+
         programa.append("\nclass EjemploCompilado {\n" +
-                this.tuplaClass +
+                tuplaClass +
                 subprogramasJava +
                 "public static void main(String[] args) {\n" +
                 "// Seccion VARIABLES\n" +
@@ -191,7 +186,6 @@ public class Compilador extends AnasintBaseVisitor<Object> {
             Object instruccionesSubprograma = sub.getInstruccionesSubprograma();
             if(instruccionesSubprograma != null) { // Si es nulo es un subprograma predefinido
                 for (Anasint.Instrucciones_procedimientoContext instruccion : (List<Anasint.Instrucciones_procedimientoContext>) instruccionesSubprograma) {
-                    // TODO: detectar llamadas a devolver
                     instrucciones.append(instruccionesParser.visit(instruccion));
                 }
             }

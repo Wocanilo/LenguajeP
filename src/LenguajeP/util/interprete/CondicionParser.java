@@ -61,7 +61,6 @@ public class CondicionParser extends AnasintBaseVisitor<Object> {
         throw new RuntimeException("Runtime error: unexpected value in visitCondicion_completa");
     }
 
-    // TODO: la parte que dice que las condiciones pueden tomar tres valores es un poco extrana, parece que quisiera indicar que existe shortcircuit en las condiciones
     // (parametro de salida valor)
     //  condicion_basica: expr1=expr IGUALDAD expr2=expr // {valor=(expr1 == expr2)}
     //  | expr1=expr DESIGUALDAD expr2=expr // {valor=(expr1 != expr2)}
